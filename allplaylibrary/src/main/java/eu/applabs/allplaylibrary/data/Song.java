@@ -1,10 +1,10 @@
 package eu.applabs.allplaylibrary.data;
 
-import eu.applabs.allplaylibrary.player.IPlayer;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 
 public class Song {
 
-    private IPlayer.ServiceType m_ServiceType;
+    private ServicePlayer.ServiceType m_ServiceType;
     private String m_Uri;
     private String m_Id;
 
@@ -21,7 +21,7 @@ public class Song {
     private int m_Dislikes;
 
     public Song() {
-        m_ServiceType = IPlayer.ServiceType.Undefined;
+        m_ServiceType = ServicePlayer.ServiceType.Undefined;
         m_Uri = "";
         m_Id = "";
         m_Title = "";
@@ -38,7 +38,7 @@ public class Song {
 
     // Setter
 
-    public void setServiceType(IPlayer.ServiceType serviceType) {
+    public void setServiceType(ServicePlayer.ServiceType serviceType) {
         m_ServiceType = serviceType;
     }
 
@@ -92,7 +92,7 @@ public class Song {
 
     // Getter
 
-    public IPlayer.ServiceType getServiceType() {
+    public ServicePlayer.ServiceType getServiceType() {
         return m_ServiceType;
     }
 

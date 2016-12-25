@@ -19,12 +19,11 @@ import android.view.View;
 
 import com.bumptech.glide.Glide;
 
-import eu.applabs.allplaylibrary.data.IMusicLibrary;
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategory;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
-import eu.applabs.allplaylibrary.data.IMusicLibraryUpdateListener;
+import eu.applabs.allplaylibrary.data.ServiceLibrary;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
-import eu.applabs.allplaylibrary.player.IPlayer;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.player.Playlist;
 import eu.applabs.allplaytv.R;
@@ -32,7 +31,7 @@ import eu.applabs.allplaytv.data.Action;
 import eu.applabs.allplaytv.presenter.ActionPresenter;
 import eu.applabs.allplaytv.presenter.PlaylistPresenter;
 
-public class MainActivity extends Activity implements IMusicLibraryUpdateListener,
+public class MainActivity extends Activity implements MusicLibrary.OnMusicLibraryUpdateListener,
                                                             OnItemViewClickedListener,
                                                             View.OnClickListener {
 
@@ -109,13 +108,13 @@ public class MainActivity extends Activity implements IMusicLibraryUpdateListene
             public void run() {
                 m_MusicLibraryAdapter.clear();
 
-                for (IMusicLibrary library : m_MusicLibrary.getLibraries()) {
+                for (ServiceLibrary library : m_MusicLibrary.getLibraries()) {
                     if (library != null) {
-                        for (IMusicLibraryCategory category : library.getCategories()) {
+                        for (ServiceCategory category : library.getCategories()) {
                             if (category != null) {
                                 ArrayObjectAdapter categoryAdapter = new ArrayObjectAdapter(new PlaylistPresenter());
 
-                                for (IMusicLibraryPlaylist playlist : category.getPlaylists()) {
+                                for (ServicePlaylist playlist : category.getPlaylists()) {
                                     if (playlist != null) {
                                         categoryAdapter.add(playlist);
                                     }
@@ -143,11 +142,11 @@ public class MainActivity extends Activity implements IMusicLibraryUpdateListene
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 if (m_Player != null) {
-                    IPlayer.State state = m_Player.getPlayerState();
+                    ServicePlayer.State state = m_Player.getPlayerState();
 
-                    if(state == IPlayer.State.Playing) {
+                    if(state == ServicePlayer.State.Playing) {
                         m_Player.pause();
-                    } else if(state == IPlayer.State.Paused) {
+                    } else if(state == ServicePlayer.State.Paused) {
                         m_Player.resume();
                     }
                 }
@@ -164,8 +163,8 @@ public class MainActivity extends Activity implements IMusicLibraryUpdateListene
 
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if(item instanceof IMusicLibraryPlaylist) {
-            IMusicLibraryPlaylist imusiclibraryplaylist = (IMusicLibraryPlaylist) item;
+        if(item instanceof ServicePlaylist) {
+            ServicePlaylist imusiclibraryplaylist = (ServicePlaylist) item;
 
             if(imusiclibraryplaylist instanceof Playlist) {
                 Intent intent = new Intent(this, PlaylistActivity.class);

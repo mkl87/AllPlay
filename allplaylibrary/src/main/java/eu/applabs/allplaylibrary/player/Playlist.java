@@ -7,33 +7,36 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.applabs.allplaylibrary.R;
-import eu.applabs.allplaylibrary.data.IMusicLibrary;
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategory;
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategoryUpdateListener;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylistUpdateListener;
+import eu.applabs.allplaylibrary.data.ServiceLibrary;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
 
-public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLibraryPlaylist {
+public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylist {
+
+    public interface OnPlaylistUpdateListener {
+        void onPlaylistUpdate();
+    }
+
     private List<Song> m_PlayList = null;
     private int m_CurrentIndex = 0;
 
-    private List<IPlaylistListener> m_IPlaylistListenerList = null;
+    private List<OnPlaylistUpdateListener> mM_OnPlaylistUpdateListenerList = null;
 
     private Activity m_Activity = null;
 
     private MusicLibrary m_MusicLibrary = null;
-    private List<IMusicLibraryCategoryUpdateListener> m_IMusicLibraryCategoryUpdateListenerList = null;
+    private List<OnCategoryUpdateListener> mM_OnCategoryUpdateListenerList = null;
 
     public Playlist(Activity activity) {
-        m_IMusicLibraryCategoryUpdateListenerList = new ArrayList<>();
+        mM_OnCategoryUpdateListenerList = new ArrayList<>();
         m_Activity = activity;
         m_CurrentIndex = 0;
         m_PlayList = new CopyOnWriteArrayList<>();
 
         m_MusicLibrary = MusicLibrary.getInstance();
-        m_IPlaylistListenerList = new ArrayList<>();
+        mM_OnPlaylistUpdateListenerList = new ArrayList<>();
     }
 
     public void setPlaylist(List<Song> list) {
@@ -48,7 +51,7 @@ public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLib
         }
 
         m_MusicLibrary.addMusicLibrary(this);
-        registerListener((IMusicLibraryCategoryUpdateListener) m_MusicLibrary);
+        registerListener((OnCategoryUpdateListener) m_MusicLibrary);
         notifyListener();
     }
 
@@ -76,7 +79,7 @@ public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLib
         }
 
         m_MusicLibrary.removeMusicLibrary(this);
-        unregisterListener((IMusicLibraryCategoryUpdateListener) m_MusicLibrary);
+        unregisterListener((OnCategoryUpdateListener) m_MusicLibrary);
         notifyListener();
     }
 
@@ -118,21 +121,21 @@ public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLib
         return null;
     }
 
-    public void registerListener(IPlaylistListener listener) {
-        m_IPlaylistListenerList.add(listener);
+    public void registerListener(OnPlaylistUpdateListener listener) {
+        mM_OnPlaylistUpdateListenerList.add(listener);
     }
 
-    public void unregisterListener(IPlaylistListener listener) {
-        m_IPlaylistListenerList.remove(listener);
+    public void unregisterListener(OnPlaylistUpdateListener listener) {
+        mM_OnPlaylistUpdateListenerList.remove(listener);
     }
 
     private void notifyListener() {
-        for(IPlaylistListener listener : m_IPlaylistListenerList) {
+        for(OnPlaylistUpdateListener listener : mM_OnPlaylistUpdateListenerList) {
             listener.onPlaylistUpdate();
         }
 
-        for(IMusicLibraryCategoryUpdateListener listener : m_IMusicLibraryCategoryUpdateListenerList) {
-            listener.onMusicLibraryCategoryUpdate();
+        for(OnCategoryUpdateListener listener : mM_OnCategoryUpdateListenerList) {
+            listener.onCategoryUpdate();
         }
     }
 
@@ -144,25 +147,25 @@ public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLib
     }
 
     @Override
-    public void addCategory(IMusicLibraryCategory category) {
+    public void addCategory(ServiceCategory category) {
 
     }
 
     @Override
-    public void removeCategory(IMusicLibraryCategory category) {
+    public void removeCategory(ServiceCategory category) {
 
     }
 
     @Override
-    public List<IMusicLibraryCategory> getCategories() {
-        List<IMusicLibraryCategory> list = new CopyOnWriteArrayList<>();
+    public List<ServiceCategory> getCategories() {
+        List<ServiceCategory> list = new CopyOnWriteArrayList<>();
         list.add(this);
 
         return list;
     }
 
     @Override
-    public List<IMusicLibraryCategory> search(String query) {
+    public List<ServiceCategory> search(String query) {
         return null;
     }
 
@@ -179,31 +182,31 @@ public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLib
     }
 
     @Override
-    public void addPlaylist(IMusicLibraryPlaylist playlist) {
+    public void addPlaylist(ServicePlaylist playlist) {
 
     }
 
     @Override
-    public void removePlaylist(IMusicLibraryPlaylist playlist) {
+    public void removePlaylist(ServicePlaylist playlist) {
 
     }
 
     @Override
-    public List<IMusicLibraryPlaylist> getPlaylists() {
-        List<IMusicLibraryPlaylist> list = new CopyOnWriteArrayList<>();
+    public List<ServicePlaylist> getPlaylists() {
+        List<ServicePlaylist> list = new CopyOnWriteArrayList<>();
         list.add(this);
 
         return list;
     }
 
     @Override
-    public void registerListener(IMusicLibraryCategoryUpdateListener listener) {
-        m_IMusicLibraryCategoryUpdateListenerList.add(listener);
+    public void registerListener(OnCategoryUpdateListener listener) {
+        mM_OnCategoryUpdateListenerList.add(listener);
     }
 
     @Override
-    public void unregisterListener(IMusicLibraryCategoryUpdateListener listener) {
-        m_IMusicLibraryCategoryUpdateListenerList.remove(listener);
+    public void unregisterListener(OnCategoryUpdateListener listener) {
+        mM_OnCategoryUpdateListenerList.remove(listener);
     }
 
     // Playlist methods
@@ -250,12 +253,12 @@ public class Playlist implements IMusicLibrary, IMusicLibraryCategory, IMusicLib
     }
 
     @Override
-    public void registerListener(IMusicLibraryPlaylistUpdateListener listener) {
+    public void registerListener(ServicePlaylist.OnPlaylistUpdateListener listener) {
 
     }
 
     @Override
-    public void unregisterListener(IMusicLibraryPlaylistUpdateListener listener) {
+    public void unregisterListener(ServicePlaylist.OnPlaylistUpdateListener listener) {
 
     }
 }

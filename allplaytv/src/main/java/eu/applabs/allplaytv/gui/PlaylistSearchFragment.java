@@ -20,10 +20,9 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
-import eu.applabs.allplaylibrary.data.IMusicLibrary;
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategory;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
-import eu.applabs.allplaylibrary.data.IMusicLibrarySearchResultCallback;
+import eu.applabs.allplaylibrary.data.ServiceLibrary;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.player.Playlist;
@@ -31,7 +30,7 @@ import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.PlaylistPresenter;
 import eu.applabs.allplaytv.utils.SearchRunnable;
 
-public class PlaylistSearchFragment extends SearchFragment implements IMusicLibrarySearchResultCallback, SearchFragment.SearchResultProvider, OnItemViewClickedListener {
+public class PlaylistSearchFragment extends SearchFragment implements ServiceLibrary.OnServiceLibrarySearchResult, SearchFragment.SearchResultProvider, OnItemViewClickedListener {
 
     private static final int SEARCH_DELAY_MS = 300;
 
@@ -41,7 +40,7 @@ public class PlaylistSearchFragment extends SearchFragment implements IMusicLibr
     private SearchRunnable m_DelayedLoad = null;
     private MusicLibrary m_MusicLibrary = null;
     private Player m_Player = null;
-    private ArrayList<IMusicLibraryPlaylist> m_PlaylistList = null;
+    private ArrayList<ServicePlaylist> m_PlaylistList = null;
     private SearchActivity m_SearchActivity = null;
 
     @Override
@@ -56,9 +55,9 @@ public class PlaylistSearchFragment extends SearchFragment implements IMusicLibr
         m_MusicLibrary = MusicLibrary.getInstance();
 
         if(m_MusicLibrary != null) {
-            for(IMusicLibrary library : m_MusicLibrary.getLibraries()) {
-                for(IMusicLibraryCategory category : library.getCategories()) {
-                    for(IMusicLibraryPlaylist playlist : category.getPlaylists()) {
+            for(ServiceLibrary library : m_MusicLibrary.getLibraries()) {
+                for(ServiceCategory category : library.getCategories()) {
+                    for(ServicePlaylist playlist : category.getPlaylists()) {
                         m_PlaylistList.add(playlist);
                     }
                 }
@@ -106,9 +105,9 @@ public class PlaylistSearchFragment extends SearchFragment implements IMusicLibr
 
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if(item instanceof IMusicLibraryPlaylist) {
+        if(item instanceof ServicePlaylist) {
             if(m_SearchActivity != null) {
-                IMusicLibraryPlaylist imusiclibraryplaylist = (IMusicLibraryPlaylist) item;
+                ServicePlaylist imusiclibraryplaylist = (ServicePlaylist) item;
                 Playlist playlist = m_Player.getPlaylist();
                 playlist.clear();
                 playlist.setPlaylist(imusiclibraryplaylist.getPlaylist());
@@ -137,8 +136,8 @@ public class PlaylistSearchFragment extends SearchFragment implements IMusicLibr
     }
 
     @Override
-    public void onResult(List<IMusicLibraryCategory> list) {
-        final List<IMusicLibraryCategory> result = list;
+    public void onSearchResult(List<ServiceCategory> list) {
+        final List<ServiceCategory> result = list;
 
         getActivity().runOnUiThread(
             new Runnable() {
@@ -147,10 +146,10 @@ public class PlaylistSearchFragment extends SearchFragment implements IMusicLibr
                     m_LoadingDialog.dismiss();
 
                     if(result != null && result.size() > 0) {
-                        for(IMusicLibraryCategory category : result) {
+                        for(ServiceCategory category : result) {
                             ArrayObjectAdapter playlistAdapter = new ArrayObjectAdapter(new PlaylistPresenter());
 
-                            for(IMusicLibraryPlaylist playlist : category.getPlaylists()) {
+                            for(ServicePlaylist playlist : category.getPlaylists()) {
                                 playlistAdapter.add(playlist);
                             }
 

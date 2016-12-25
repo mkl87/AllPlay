@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 
-import eu.applabs.allplaylibrary.player.IPlayer;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaytv.R;
 
 public class ServicePresenter extends Presenter {
@@ -54,7 +54,7 @@ public class ServicePresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
-        IPlayer.ServiceType type = (IPlayer.ServiceType) item;
+        ServicePlayer.ServiceType type = (ServicePlayer.ServiceType) item;
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         switch(type) {

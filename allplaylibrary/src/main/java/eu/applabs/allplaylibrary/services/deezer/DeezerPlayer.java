@@ -29,14 +29,14 @@ import java.util.List;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.IPlayer;
-import eu.applabs.allplaylibrary.player.IPlayerListener;
+import eu.applabs.allplaylibrary.player.PlayerListener;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 
-public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerProgressListener, OnPlayerStateChangeListener {
+public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPlayerProgressListener, OnPlayerStateChangeListener {
 
     private State m_State = null;
-    private DeezerMusicLibrary m_DeezerMusicLibrary = null;
+    private DeezerService mM_DeezerService = null;
     private DeezerCategory m_DeezerCategoryPlaylists = null;
     private DeezerCategory m_DeezerCategoryAlbums = null;
     private DeezerCategory m_DeezerCategoryOwnCharts = null;
@@ -47,7 +47,7 @@ public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerPro
     private Activity m_Activity = null;
     private DeezerConnect m_DeezerConnect = null;
     private SessionStore m_SessionStore = null;
-    private List<IPlayerListener> m_IPlayerListenerList = null;
+    private List<PlayerListener> m_IPlayerListenerList = null;
     private com.deezer.sdk.player.Player m_DeezerPlayer = null;
 
     public DeezerPlayer() {
@@ -69,8 +69,8 @@ public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerPro
 
     @Override
     public void clearPlayer() {
-        m_DeezerMusicLibrary.clearLibrary();
-        m_MusicLibrary.removeMusicLibrary(m_DeezerMusicLibrary);
+        mM_DeezerService.clearLibrary();
+        m_MusicLibrary.removeMusicLibrary(mM_DeezerService);
         m_DeezerPlayer.release();
     }
 
@@ -178,12 +178,12 @@ public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerPro
     }
 
     @Override
-    public void registerListener(IPlayerListener listener) {
+    public void registerListener(PlayerListener listener) {
         m_IPlayerListenerList.add(listener);
     }
 
     @Override
-    public void unregisterListener(IPlayerListener listener) {
+    public void unregisterListener(PlayerListener listener) {
         m_IPlayerListenerList.remove(listener);
     }
 
@@ -201,7 +201,7 @@ public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerPro
         if(song != null && song.getDuration() != 0) {
             int percent = (int) (((l/1000) * 100) /  song.getDuration());
 
-            for(IPlayerListener listener : m_IPlayerListenerList) {
+            for(PlayerListener listener : m_IPlayerListenerList) {
                 listener.onPlayerPlaybackPositionChanged(percent);
             }
         }
@@ -245,25 +245,25 @@ public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerPro
         State old_state = m_State;
         m_State = new_state;
 
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onPlayerStateChanged(ServiceType.Deezer, old_state, new_state);
         }
     }
 
     private void processEvent(Event event) {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onPlayerEvent(event);
         }
     }
 
     private void notifyLoginSuccess() {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLoginSuccess(ServiceType.Deezer);
         }
     }
 
     private void notifyLoginError() {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLoginError(ServiceType.Deezer);
         }
     }
@@ -278,16 +278,16 @@ public class DeezerPlayer implements IPlayer, OnPlayerErrorListener, OnPlayerPro
             e.printStackTrace();
         }
 
-        m_DeezerMusicLibrary = new DeezerMusicLibrary();
+        mM_DeezerService = new DeezerService();
         m_DeezerCategoryPlaylists = new DeezerCategory(m_Activity.getString(R.string.category_playlists));
         m_DeezerCategoryAlbums = new DeezerCategory(m_Activity.getString(R.string.category_albums));
         m_DeezerCategoryOwnCharts = new DeezerCategory(m_Activity.getString(R.string.category_own_charts));
 
-        m_DeezerMusicLibrary.addCategory(m_DeezerCategoryPlaylists);
-        m_DeezerMusicLibrary.addCategory(m_DeezerCategoryAlbums);
-        m_DeezerMusicLibrary.addCategory(m_DeezerCategoryOwnCharts);
+        mM_DeezerService.addCategory(m_DeezerCategoryPlaylists);
+        mM_DeezerService.addCategory(m_DeezerCategoryAlbums);
+        mM_DeezerService.addCategory(m_DeezerCategoryOwnCharts);
 
-        m_MusicLibrary.addMusicLibrary(m_DeezerMusicLibrary);
+        m_MusicLibrary.addMusicLibrary(mM_DeezerService);
 
         AlbumsListener al = new AlbumsListener();
         DeezerRequest ar = DeezerRequestFactory.requestCurrentUserAlbums();

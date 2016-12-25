@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.Set;
 
 import eu.applabs.allplaylibrary.data.SettingsManager;
-import eu.applabs.allplaylibrary.player.IPlayer;
-import eu.applabs.allplaylibrary.player.IPlayerListener;
+import eu.applabs.allplaylibrary.player.PlayerListener;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.ServicePresenter;
 
-public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, IPlayerListener {
+public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, PlayerListener {
 
     private FragmentManager m_FragmentManager = null;
     private BrowseFragment m_BrowseFragment = null;
@@ -40,8 +40,8 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
     private Player m_Player = null;
 
-    private List<IPlayer.ServiceType> m_ConnectedServices = null;
-    private List<IPlayer.ServiceType> m_AvailableServices = null;
+    private List<ServicePlayer.ServiceType> m_ConnectedServices = null;
+    private List<ServicePlayer.ServiceType> m_AvailableServices = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +110,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                     ArrayObjectAdapter connectedServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
                     Set<String> connectedServices = m_SettingsManager.getConnectedServices();
                     for(String s : m_SettingsManager.getConnectedServices()) {
-                        IPlayer.ServiceType type = IPlayer.ServiceType.values()[Integer.valueOf(s)];
+                        ServicePlayer.ServiceType type = ServicePlayer.ServiceType.values()[Integer.valueOf(s)];
                         connectedServiceAdapter.add(type);
                         m_ConnectedServices.add(type);
                     }
@@ -122,19 +122,19 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
                     ArrayObjectAdapter availableServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
 
-                    if(!connectedServices.contains(String.valueOf(IPlayer.ServiceType.GoogleMusic.getValue()))) {
-                        availableServiceAdapter.add(IPlayer.ServiceType.GoogleMusic);
-                        m_AvailableServices.add(IPlayer.ServiceType.GoogleMusic);
+                    if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.GoogleMusic.getValue()))) {
+                        availableServiceAdapter.add(ServicePlayer.ServiceType.GoogleMusic);
+                        m_AvailableServices.add(ServicePlayer.ServiceType.GoogleMusic);
                     }
 
-                    if(!connectedServices.contains(String.valueOf(IPlayer.ServiceType.Spotify.getValue()))) {
-                        availableServiceAdapter.add(IPlayer.ServiceType.Spotify);
-                        m_AvailableServices.add(IPlayer.ServiceType.Spotify);
+                    if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.Spotify.getValue()))) {
+                        availableServiceAdapter.add(ServicePlayer.ServiceType.Spotify);
+                        m_AvailableServices.add(ServicePlayer.ServiceType.Spotify);
                     }
 
-                    if(!connectedServices.contains(String.valueOf(IPlayer.ServiceType.Deezer.getValue()))) {
-                        availableServiceAdapter.add(IPlayer.ServiceType.Deezer);
-                        m_AvailableServices.add(IPlayer.ServiceType.Deezer);
+                    if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.Deezer.getValue()))) {
+                        availableServiceAdapter.add(ServicePlayer.ServiceType.Deezer);
+                        m_AvailableServices.add(ServicePlayer.ServiceType.Deezer);
                     }
 
                     HeaderItem availableServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_availableservices));
@@ -146,8 +146,8 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if(item instanceof IPlayer.ServiceType) {
-            final IPlayer.ServiceType type = (IPlayer.ServiceType) item;
+        if(item instanceof ServicePlayer.ServiceType) {
+            final ServicePlayer.ServiceType type = (ServicePlayer.ServiceType) item;
             final Player player = Player.getInstance();
 
             if(m_AvailableServices.contains(type)) {
@@ -174,32 +174,32 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     }
 
     @Override
-    public void onPlayerStateChanged(IPlayer.ServiceType type, IPlayer.State old_state, IPlayer.State new_state) {
+    public void onPlayerStateChanged(ServicePlayer.ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
         // Nothing to do..
     }
 
     @Override
-    public void onPlayerEvent(IPlayer.Event event) {
+    public void onPlayerEvent(ServicePlayer.Event event) {
         // Nothing to do..
     }
 
     @Override
-    public void onLoginSuccess(IPlayer.ServiceType type) {
+    public void onLoginSuccess(ServicePlayer.ServiceType type) {
         updateUI();
     }
 
     @Override
-    public void onLoginError(IPlayer.ServiceType type) {
+    public void onLoginError(ServicePlayer.ServiceType type) {
         Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_loginerror), Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onLogoutSuccess(IPlayer.ServiceType type) {
+    public void onLogoutSuccess(ServicePlayer.ServiceType type) {
         updateUI();
     }
 
     @Override
-    public void onLogoutError(IPlayer.ServiceType type) {
+    public void onLogoutError(ServicePlayer.ServiceType type) {
         Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_logouterror), Toast.LENGTH_SHORT).show();
     }
 

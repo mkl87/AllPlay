@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.IPlayer;
-import eu.applabs.allplaylibrary.player.IPlayerListener;
+import eu.applabs.allplaylibrary.player.PlayerListener;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 
-public class GMusicPlayer implements IPlayer {
+public class GMusicPlayer implements ServicePlayer {
 
     private Activity m_Activity = null;
 
@@ -70,12 +70,12 @@ public class GMusicPlayer implements IPlayer {
     }
 
     @Override
-    public void registerListener(IPlayerListener listener) {
+    public void registerListener(PlayerListener listener) {
 
     }
 
     @Override
-    public void unregisterListener(IPlayerListener listener) {
+    public void unregisterListener(PlayerListener listener) {
 
     }
 }

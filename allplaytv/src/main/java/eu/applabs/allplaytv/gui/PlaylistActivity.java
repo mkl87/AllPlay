@@ -13,15 +13,14 @@ import android.widget.ProgressBar;
 
 import com.bumptech.glide.Glide;
 
-import eu.applabs.allplaylibrary.player.IPlayer;
-import eu.applabs.allplaylibrary.player.IPlayerListener;
-import eu.applabs.allplaylibrary.player.IPlaylistListener;
+import eu.applabs.allplaylibrary.player.PlayerListener;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.player.Playlist;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
-public class PlaylistActivity extends Activity implements IPlaylistListener, IPlayerListener, PlaylistAdapter.OnPositionSelectedListener {
+public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpdateListener, PlayerListener, PlaylistAdapter.OnPositionSelectedListener {
 
     private Player m_Player = null;
     private Playlist m_Playlist = null;
@@ -78,11 +77,11 @@ public class PlaylistActivity extends Activity implements IPlaylistListener, IPl
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 if (m_Player != null) {
-                    IPlayer.State state = m_Player.getPlayerState();
+                    ServicePlayer.State state = m_Player.getPlayerState();
 
-                    if(state == IPlayer.State.Playing) {
+                    if(state == ServicePlayer.State.Playing) {
                         m_Player.pause();
-                    } else if(state == IPlayer.State.Paused) {
+                    } else if(state == ServicePlayer.State.Paused) {
                         m_Player.resume();
                     }
                 }
@@ -117,32 +116,32 @@ public class PlaylistActivity extends Activity implements IPlaylistListener, IPl
     }
 
     @Override
-    public void onPlayerStateChanged(IPlayer.ServiceType type, IPlayer.State old_state, IPlayer.State new_state) {
+    public void onPlayerStateChanged(ServicePlayer.ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
         // Nothing to do
     }
 
     @Override
-    public void onPlayerEvent(IPlayer.Event event) {
+    public void onPlayerEvent(ServicePlayer.Event event) {
         // Nothing to do
     }
 
     @Override
-    public void onLoginSuccess(IPlayer.ServiceType type) {
+    public void onLoginSuccess(ServicePlayer.ServiceType type) {
         // Nothing to do
     }
 
     @Override
-    public void onLoginError(IPlayer.ServiceType type) {
+    public void onLoginError(ServicePlayer.ServiceType type) {
         // Nothing to do
     }
 
     @Override
-    public void onLogoutSuccess(IPlayer.ServiceType type) {
+    public void onLogoutSuccess(ServicePlayer.ServiceType type) {
         // Nothing to do
     }
 
     @Override
-    public void onLogoutError(IPlayer.ServiceType type) {
+    public void onLogoutError(ServicePlayer.ServiceType type) {
         // Nothing to do
     }
 

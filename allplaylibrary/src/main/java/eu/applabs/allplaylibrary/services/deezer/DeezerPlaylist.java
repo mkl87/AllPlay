@@ -3,31 +3,28 @@ package eu.applabs.allplaylibrary.services.deezer;
 import com.deezer.sdk.model.Album;
 import com.deezer.sdk.model.Playlist;
 import com.deezer.sdk.model.Track;
-import com.deezer.sdk.network.request.DeezerRequestFactory;
-import com.deezer.sdk.network.request.event.JsonRequestListener;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylistUpdateListener;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.IPlayer;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 
-public class DeezerPlaylist implements IMusicLibraryPlaylist {
+public class DeezerPlaylist implements ServicePlaylist {
 
     private String m_Name = null;
     private String m_Cover = null;
     private List<Song> m_SongList = null;
     private MusicLibrary m_MusicLibrary = null;
 
-    private List<IMusicLibraryPlaylistUpdateListener> m_IMusicLibraryPlaylistUpdateListenerList = null;
+    private List<OnPlaylistUpdateListener> mM_OnPlaylistUpdateListenerList = null;
 
     public DeezerPlaylist(String name) {
         m_Name = name;
         m_SongList = new CopyOnWriteArrayList<>();
-        m_IMusicLibraryPlaylistUpdateListenerList = new CopyOnWriteArrayList<>();
+        mM_OnPlaylistUpdateListenerList = new CopyOnWriteArrayList<>();
 
         m_MusicLibrary = MusicLibrary.getInstance();
         registerListener(m_MusicLibrary);
@@ -45,7 +42,7 @@ public class DeezerPlaylist implements IMusicLibraryPlaylist {
                 song.setArtist(t.getArtist().getName());
                 song.setCoverSmall(m_Cover);
                 song.setId(String.valueOf(t.getId()));
-                song.setServiceType(IPlayer.ServiceType.Deezer);
+                song.setServiceType(ServicePlayer.ServiceType.Deezer);
                 song.setUri(t.getPreviewUrl());
                 song.setDuration((long) t.getDuration());
 
@@ -68,7 +65,7 @@ public class DeezerPlaylist implements IMusicLibraryPlaylist {
                 song.setArtist(t.getArtist().getName());
                 song.setCoverSmall(m_Cover);
                 song.setId(String.valueOf(t.getId()));
-                song.setServiceType(IPlayer.ServiceType.Deezer);
+                song.setServiceType(ServicePlayer.ServiceType.Deezer);
                 song.setUri(t.getPreviewUrl());
                 song.setDuration((long) t.getDuration());
 
@@ -91,7 +88,7 @@ public class DeezerPlaylist implements IMusicLibraryPlaylist {
             song.setArtist(t.getArtist().getName());
             song.setCoverSmall(m_Cover);
             song.setId(String.valueOf(t.getId()));
-            song.setServiceType(IPlayer.ServiceType.Deezer);
+            song.setServiceType(ServicePlayer.ServiceType.Deezer);
             song.setUri(t.getPreviewUrl());
             song.setDuration((long) t.getDuration());
 
@@ -131,18 +128,18 @@ public class DeezerPlaylist implements IMusicLibraryPlaylist {
     }
 
     @Override
-    public void registerListener(IMusicLibraryPlaylistUpdateListener listener) {
-        m_IMusicLibraryPlaylistUpdateListenerList.add(listener);
+    public void registerListener(OnPlaylistUpdateListener listener) {
+        mM_OnPlaylistUpdateListenerList.add(listener);
     }
 
     @Override
-    public void unregisterListener(IMusicLibraryPlaylistUpdateListener listener) {
-        m_IMusicLibraryPlaylistUpdateListenerList.remove(listener);
+    public void unregisterListener(OnPlaylistUpdateListener listener) {
+        mM_OnPlaylistUpdateListenerList.remove(listener);
     }
 
     private void notifyListener() {
-        for(IMusicLibraryPlaylistUpdateListener listener : m_IMusicLibraryPlaylistUpdateListenerList) {
-            listener.onMusicLibraryPlaylistUpdate();
+        for(OnPlaylistUpdateListener listener : mM_OnPlaylistUpdateListenerList) {
+            listener.onPlaylistUpdate();
         }
     }
 }

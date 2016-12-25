@@ -2,21 +2,17 @@ package eu.applabs.allplaylibrary.services.spotify;
 
 import android.app.Activity;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.applabs.allplaylibrary.R;
-import eu.applabs.allplaylibrary.data.IMusicLibrary;
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategory;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
+import eu.applabs.allplaylibrary.data.ServiceLibrary;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;
 import kaaes.spotify.webapi.android.models.AlbumSimple;
 import kaaes.spotify.webapi.android.models.AlbumsPager;
 import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.ArtistSimple;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Playlist;
 import kaaes.spotify.webapi.android.models.PlaylistSimple;
@@ -26,31 +22,31 @@ import kaaes.spotify.webapi.android.models.Tracks;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 
-public class SpotifyMusicLibrary implements IMusicLibrary {
+public class SpotifyServiceWrapper implements ServiceLibrary {
 
     Activity m_Activity = null;
 
     SpotifyService m_SpotifyService = null;
     UserPrivate m_User = null;
-    List<IMusicLibraryCategory> m_IMusicLibraryCategoryList = null;
+    List<ServiceCategory> mM_ServiceCategoryList = null;
 
-    public SpotifyMusicLibrary(Activity activity) {
+    public SpotifyServiceWrapper(Activity activity) {
         m_Activity = activity;
-        m_IMusicLibraryCategoryList = new CopyOnWriteArrayList<>();
+        mM_ServiceCategoryList = new CopyOnWriteArrayList<>();
     }
 
     @Override
     public void clearLibrary() {
-        for(IMusicLibraryCategory category : m_IMusicLibraryCategoryList) {
+        for(ServiceCategory category : mM_ServiceCategoryList) {
             category.clearCategory();
         }
 
-        m_IMusicLibraryCategoryList.clear();
+        mM_ServiceCategoryList.clear();
     }
 
     @Override
-    public List<IMusicLibraryCategory> getCategories() {
-        return m_IMusicLibraryCategoryList;
+    public List<ServiceCategory> getCategories() {
+        return mM_ServiceCategoryList;
     }
 
     public void setSpotifyService(SpotifyService service) {
@@ -61,18 +57,18 @@ public class SpotifyMusicLibrary implements IMusicLibrary {
         m_User = user;
     }
 
-    public void addCategory(IMusicLibraryCategory category) {
-        m_IMusicLibraryCategoryList.add(category);
+    public void addCategory(ServiceCategory category) {
+        mM_ServiceCategoryList.add(category);
     }
 
-    public void removeCategory(IMusicLibraryCategory category) {
-        m_IMusicLibraryCategoryList.remove(category);
+    public void removeCategory(ServiceCategory category) {
+        mM_ServiceCategoryList.remove(category);
     }
 
     @Override
-    public List<IMusicLibraryCategory> search(String query) {
+    public List<ServiceCategory> search(String query) {
         if(m_SpotifyService != null) {
-            List<IMusicLibraryCategory> result = new CopyOnWriteArrayList<>();
+            List<ServiceCategory> result = new CopyOnWriteArrayList<>();
 
             ArtistsPager artistsPager = m_SpotifyService.searchArtists(query);
 

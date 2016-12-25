@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import eu.applabs.allplaylibrary.data.Song;
 
-public interface IPlayer {
+public interface ServicePlayer {
 
     enum ServiceType {
         Undefined(0),
@@ -63,7 +63,7 @@ public interface IPlayer {
     boolean stop(Song song);
 
     // Listener methods
-    void registerListener(IPlayerListener listener);
-    void unregisterListener(IPlayerListener listener);
+    void registerListener(PlayerListener listener);
+    void unregisterListener(PlayerListener listener);
 }
 

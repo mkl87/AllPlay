@@ -24,7 +24,7 @@ import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlayer;
 
-public class Player implements IPlayerListener, IPlaylistListener, AudioManager.OnAudioFocusChangeListener {
+public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener, AudioManager.OnAudioFocusChangeListener {
 
     private static final String CLASSNAME = Player.class.getSimpleName();
 
@@ -34,12 +34,12 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
     private Activity m_Activity = null;
     private SettingsManager m_SettingsManager = null;
 
-    private List<IPlayer> m_IPlayerList = null;
-    private IPlayer m_ActiveIPlayer = null;
+    private List<ServicePlayer> mM_ServicePlayerList = null;
+    private ServicePlayer mM_ActiveServicePlayer = null;
     private boolean m_MediaSessionCompatInitialized = false;
     private MediaSessionCompat m_MediaSessionCompat = null;
 
-    private List<IPlayerListener> m_IPlayerListenerList = null;
+    private List<PlayerListener> m_IPlayerListenerList = null;
 
     Playlist m_Playlist = null;
 
@@ -59,7 +59,7 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
             Player.m_Initialized = true;
 
             m_Activity = activity;
-            m_IPlayerList = new ArrayList<>();
+            mM_ServicePlayerList = new ArrayList<>();
             m_IPlayerListenerList = new ArrayList<>();
 
             m_Playlist = new Playlist(m_Activity);
@@ -70,7 +70,7 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
 
             for(String s : m_SettingsManager.getConnectedServices()) {
                 int service = Integer.valueOf(s);
-                login(IPlayer.ServiceType.values()[service]);
+                login(ServicePlayer.ServiceType.values()[service]);
             }
         }
     }
@@ -80,14 +80,14 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
         m_Activity = null;
 
         // Clear all initialized player
-        if(m_IPlayerList != null) {
-            for (IPlayer player : m_IPlayerList) {
+        if(mM_ServicePlayerList != null) {
+            for (ServicePlayer player : mM_ServicePlayerList) {
                 player.clearPlayer();
             }
         }
 
-        m_IPlayerList.clear();
-        m_IPlayerList = null;
+        mM_ServicePlayerList.clear();
+        mM_ServicePlayerList = null;
 
         m_Playlist.unregisterListener(this);
         m_Playlist.clear();
@@ -102,12 +102,12 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
         }
     }
 
-    public boolean login(IPlayer.ServiceType type) {
+    public boolean login(ServicePlayer.ServiceType type) {
         return login(type, m_Activity);
     }
 
-    public boolean login(IPlayer.ServiceType type, Activity activity) {
-        IPlayer player = null;
+    public boolean login(ServicePlayer.ServiceType type, Activity activity) {
+        ServicePlayer player = null;
 
         switch(type) {
             case Spotify:
@@ -124,16 +124,16 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
             player.registerListener(this);
             player.initialize(activity);
             player.login();
-            m_IPlayerList.add(player);
+            mM_ServicePlayerList.add(player);
         }
 
         return true;
     }
 
-    public boolean logout(IPlayer.ServiceType type) {
-        IPlayer player = null;
+    public boolean logout(ServicePlayer.ServiceType type) {
+        ServicePlayer player = null;
 
-        for(IPlayer iplayer : m_IPlayerList) {
+        for(ServicePlayer iplayer : mM_ServicePlayerList) {
             if(iplayer.getServiceType() == type) {
                 player = iplayer;
                 break;
@@ -149,23 +149,23 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
             player.logout();
             onLogoutSuccess(player.getServiceType());
             player.clearPlayer();
-            m_IPlayerList.remove(player);
+            mM_ServicePlayerList.remove(player);
         }
 
         return true;
     }
 
-    public void registerListener(IPlayerListener listener) {
+    public void registerListener(PlayerListener listener) {
         m_IPlayerListenerList.add(listener);
     }
 
-    public void unregisterListener(IPlayerListener listener) {
+    public void unregisterListener(PlayerListener listener) {
         m_IPlayerListenerList.remove(listener);
     }
 
     public boolean checkActivityResult(int requestCode, int resultCode, Intent intent)
     {
-        for(IPlayer player : m_IPlayerList) {
+        for(ServicePlayer player : mM_ServicePlayerList) {
             if(player.checkActivityResult(requestCode, resultCode, intent)) {
                 return true;
             }
@@ -178,26 +178,26 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
         return m_Playlist;
     }
 
-    public IPlayer.State getPlayerState() {
-        if(m_ActiveIPlayer != null) {
-            return m_ActiveIPlayer.getPlayerState();
+    public ServicePlayer.State getPlayerState() {
+        if(mM_ActiveServicePlayer != null) {
+            return mM_ActiveServicePlayer.getPlayerState();
         }
 
-        return IPlayer.State.Idle;
+        return ServicePlayer.State.Idle;
     }
 
     public void play() {
         Song song = m_Playlist.getCurrentSong();
 
         if(song != null) {
-            for(IPlayer player : m_IPlayerList) {
+            for(ServicePlayer player : mM_ServicePlayerList) {
                 if(player.play(song)) {
                     // Save the active player
                     if(!m_MediaSessionCompatInitialized) {
                         initializeMediaSession();
                     }
 
-                    m_ActiveIPlayer = player;
+                    mM_ActiveServicePlayer = player;
                     break;
                 }
             }
@@ -207,24 +207,24 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
     public void resume() {
         Song song = m_Playlist.getCurrentSong();
 
-        if(m_ActiveIPlayer != null && song != null) {
-            m_ActiveIPlayer.resume(song);
+        if(mM_ActiveServicePlayer != null && song != null) {
+            mM_ActiveServicePlayer.resume(song);
         }
     }
 
     public void pause() {
         Song song = m_Playlist.getCurrentSong();
 
-        if(m_ActiveIPlayer != null && song != null) {
-            m_ActiveIPlayer.pause(song);
+        if(mM_ActiveServicePlayer != null && song != null) {
+            mM_ActiveServicePlayer.pause(song);
         }
     }
 
     public void stop() {
         Song song = m_Playlist.getCurrentSong();
 
-        if(m_ActiveIPlayer != null && song != null) {
-            m_ActiveIPlayer.stop(song);
+        if(mM_ActiveServicePlayer != null && song != null) {
+            mM_ActiveServicePlayer.stop(song);
         }
     }
 
@@ -232,14 +232,14 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
         Song song = m_Playlist.getNextSong();
 
         if(song != null) {
-            for(IPlayer player : m_IPlayerList) {
+            for(ServicePlayer player : mM_ServicePlayerList) {
                 if(player.play(song)) {
                     // Save the active player
                     if(!m_MediaSessionCompatInitialized) {
                         initializeMediaSession();
                     }
 
-                    m_ActiveIPlayer = player;
+                    mM_ActiveServicePlayer = player;
                     break;
                 }
             }
@@ -250,14 +250,14 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
         Song song = m_Playlist.getPrevSong();
 
         if(song != null) {
-            for(IPlayer player : m_IPlayerList) {
+            for(ServicePlayer player : mM_ServicePlayerList) {
                 if(player.play(song)) {
                     // Save the active player
                     if(!m_MediaSessionCompatInitialized) {
                         initializeMediaSession();
                     }
 
-                    m_ActiveIPlayer = player;
+                    mM_ActiveServicePlayer = player;
                     break;
                 }
             }
@@ -265,59 +265,59 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
     }
 
     @Override
-    public void onPlayerStateChanged(IPlayer.ServiceType type, IPlayer.State old_state, IPlayer.State new_state) {
+    public void onPlayerStateChanged(ServicePlayer.ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
         // Just inform the client if we got an update from the current player
-        if(m_ActiveIPlayer != null && m_ActiveIPlayer.getServiceType() == type) {
-            for(IPlayerListener listener : m_IPlayerListenerList) {
+        if(mM_ActiveServicePlayer != null && mM_ActiveServicePlayer.getServiceType() == type) {
+            for(PlayerListener listener : m_IPlayerListenerList) {
                 listener.onPlayerStateChanged(type, old_state, new_state);
             }
         }
     }
 
     @Override
-    public void onPlayerEvent(IPlayer.Event event) {
-        if(event == IPlayer.Event.TrackEnd) {
+    public void onPlayerEvent(ServicePlayer.Event event) {
+        if(event == ServicePlayer.Event.TrackEnd) {
             next(); // Play the next song
-        } else if(event == IPlayer.Event.Error) {
+        } else if(event == ServicePlayer.Event.Error) {
             m_Playlist.remove(m_Playlist.getCurrentSong());
             next();
         }
     }
 
     @Override
-    public void onLoginSuccess(IPlayer.ServiceType type) {
+    public void onLoginSuccess(ServicePlayer.ServiceType type) {
         Set<String> connectedServices = m_SettingsManager.getConnectedServices();
         connectedServices.add(String.valueOf(type.getValue()));
 
         m_SettingsManager.setConnectedServices(connectedServices);
 
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLoginSuccess(type);
         }
     }
 
     @Override
-    public void onLoginError(IPlayer.ServiceType type) {
+    public void onLoginError(ServicePlayer.ServiceType type) {
         Set<String> connectedServices = m_SettingsManager.getConnectedServices();
         connectedServices.remove(String.valueOf(type.getValue()));
 
         m_SettingsManager.setConnectedServices(connectedServices);
 
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLoginError(type);
         }
     }
 
     @Override
-    public void onLogoutSuccess(IPlayer.ServiceType type) {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+    public void onLogoutSuccess(ServicePlayer.ServiceType type) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLogoutSuccess(type);
         }
     }
 
     @Override
-    public void onLogoutError(IPlayer.ServiceType type) {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+    public void onLogoutError(ServicePlayer.ServiceType type) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLogoutError(type);
         }
     }
@@ -325,7 +325,7 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
     @Override
     public void onPlayerPlaybackPositionChanged(int position) {
         if(m_IPlayerListenerList != null) {
-            for (IPlayerListener listener : m_IPlayerListenerList) {
+            for (PlayerListener listener : m_IPlayerListenerList) {
                 if (listener != null) {
                     listener.onPlayerPlaybackPositionChanged(position);
                 }
@@ -340,7 +340,7 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
         Intent intent = new Intent(m_Activity, m_Activity.getClass());
         PendingIntent pi = PendingIntent.getActivity(m_Activity, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         m_MediaSessionCompat = new MediaSessionCompat(m_Activity, CLASSNAME, cn, pi);
-        m_MediaSessionCompat.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        m_MediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         AudioManager am = (AudioManager) m_Activity.getSystemService(Context.AUDIO_SERVICE);
 

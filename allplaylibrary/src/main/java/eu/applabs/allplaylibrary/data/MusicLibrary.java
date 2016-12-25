@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class MusicLibrary implements IMusicLibraryCategoryUpdateListener, IMusicLibraryPlaylistUpdateListener {
+public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, ServicePlaylist.OnPlaylistUpdateListener {
+
+    public interface OnMusicLibraryUpdateListener {
+        void onMusicLibraryUpdate();
+    }
 
     private static MusicLibrary s_Instance = null;
 
-    private List<IMusicLibrary> m_IMusicLibraryList = null;
-    private List<IMusicLibraryUpdateListener> m_IMusicLibraryUpdateListenerList = null;
+    private List<ServiceLibrary> mM_ServiceLibraryList = null;
+    private List<OnMusicLibraryUpdateListener> mM_OnMusicLibraryUpdateListenerList = null;
 
     // Private (Singelton)
     private MusicLibrary() {}
@@ -17,52 +21,52 @@ public class MusicLibrary implements IMusicLibraryCategoryUpdateListener, IMusic
     public static synchronized MusicLibrary getInstance() {
         if(MusicLibrary.s_Instance == null) {
             MusicLibrary.s_Instance = new MusicLibrary();
-            MusicLibrary.s_Instance.m_IMusicLibraryList = new ArrayList<>();
-            MusicLibrary.s_Instance.m_IMusicLibraryUpdateListenerList = new ArrayList<>();
+            MusicLibrary.s_Instance.mM_ServiceLibraryList = new ArrayList<>();
+            MusicLibrary.s_Instance.mM_OnMusicLibraryUpdateListenerList = new ArrayList<>();
         }
 
         return MusicLibrary.s_Instance;
     }
 
     public void clearLibrary() {
-        for(IMusicLibrary library : m_IMusicLibraryList) {
+        for(ServiceLibrary library : mM_ServiceLibraryList) {
             library.clearLibrary();
         }
 
-        m_IMusicLibraryList.clear();
+        mM_ServiceLibraryList.clear();
     }
 
-    public void search(String query, IMusicLibrarySearchResultCallback callback) {
+    public void search(String query, ServiceLibrary.OnServiceLibrarySearchResult callback) {
         if(query != null && callback != null) {
             QueryThread qt = new QueryThread(query, callback);
             qt.start();
         }
     }
 
-    public List<IMusicLibrary> getLibraries() {
-        return m_IMusicLibraryList;
+    public List<ServiceLibrary> getLibraries() {
+        return mM_ServiceLibraryList;
     }
 
-    public void addMusicLibrary(IMusicLibrary library) {
-        m_IMusicLibraryList.add(library);
+    public void addMusicLibrary(ServiceLibrary library) {
+        mM_ServiceLibraryList.add(library);
         notifyMLU();
     }
 
-    public void removeMusicLibrary(IMusicLibrary library) {
-        m_IMusicLibraryList.remove(library);
+    public void removeMusicLibrary(ServiceLibrary library) {
+        mM_ServiceLibraryList.remove(library);
         notifyMLU();
     }
 
-    public void registerListener(IMusicLibraryUpdateListener listener) {
-        m_IMusicLibraryUpdateListenerList.add(listener);
+    public void registerListener(OnMusicLibraryUpdateListener listener) {
+        mM_OnMusicLibraryUpdateListenerList.add(listener);
     }
 
-    public void unregisterListener(IMusicLibraryUpdateListener listener) {
-        m_IMusicLibraryUpdateListenerList.remove(listener);
+    public void unregisterListener(OnMusicLibraryUpdateListener listener) {
+        mM_OnMusicLibraryUpdateListenerList.remove(listener);
     }
 
     private void notifyMLU() {
-        for(IMusicLibraryUpdateListener listener : m_IMusicLibraryUpdateListenerList) {
+        for(OnMusicLibraryUpdateListener listener : mM_OnMusicLibraryUpdateListenerList) {
             if(listener != null) {
                 listener.onMusicLibraryUpdate();
             }
@@ -70,20 +74,20 @@ public class MusicLibrary implements IMusicLibraryCategoryUpdateListener, IMusic
     }
 
     @Override
-    public void onMusicLibraryCategoryUpdate() {
+    public void onCategoryUpdate() {
         notifyMLU();
     }
 
     @Override
-    public void onMusicLibraryPlaylistUpdate() {
+    public void onPlaylistUpdate() {
         notifyMLU();
     }
 
     private class QueryThread extends Thread {
         private String m_Query = null;
-        private IMusicLibrarySearchResultCallback m_Callback = null;
+        private ServiceLibrary.OnServiceLibrarySearchResult m_Callback = null;
 
-        public QueryThread(String query, IMusicLibrarySearchResultCallback callback) {
+        public QueryThread(String query, ServiceLibrary.OnServiceLibrarySearchResult callback) {
             m_Query = query;
             m_Callback = callback;
         }
@@ -92,17 +96,17 @@ public class MusicLibrary implements IMusicLibraryCategoryUpdateListener, IMusic
         public void run() {
             super.run();
 
-            List<IMusicLibraryCategory> results = new CopyOnWriteArrayList<>();
+            List<ServiceCategory> results = new CopyOnWriteArrayList<>();
 
-            for(IMusicLibrary library : m_IMusicLibraryList) {
-                List<IMusicLibraryCategory> list = library.search(m_Query);
+            for(ServiceLibrary library : mM_ServiceLibraryList) {
+                List<ServiceCategory> list = library.search(m_Query);
 
                 if(list != null && list.size() > 0) {
                     results.addAll(list);
                 }
             }
 
-            m_Callback.onResult(results);
+            m_Callback.onSearchResult(results);
         }
     }
 }

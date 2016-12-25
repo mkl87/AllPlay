@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylistUpdateListener;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.IPlayer;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;
 import kaaes.spotify.webapi.android.models.Artist;
@@ -27,7 +25,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class SpotifyPlaylist implements IMusicLibraryPlaylist {
+public class SpotifyPlaylist implements ServicePlaylist {
 
     private MusicLibrary m_MusicLibrary = null;
     private SpotifyService m_SpotifyService = null;
@@ -36,7 +34,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
     private String m_Owner = null;
     private String m_Id = null;
     private List<Song> m_SongList = null;
-    private List<IMusicLibraryPlaylistUpdateListener> m_IMusicLibraryPlaylistUpdateListenerList = null;
+    private List<OnPlaylistUpdateListener> mM_OnPlaylistUpdateListenerList = null;
 
     private CallbackAlbum m_CallbackAlbum = null;
     private CallbackPlaylist m_CallbackPlaylist = null;
@@ -56,7 +54,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
         m_Owner = owner;
         m_Id = id;
         m_SongList = new ArrayList<>();
-        m_IMusicLibraryPlaylistUpdateListenerList = new ArrayList<>();
+        mM_OnPlaylistUpdateListenerList = new ArrayList<>();
 
         if(images != null && images.size() > 0) {
             m_CoverUrl = images.get(0).url;
@@ -74,7 +72,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
 
             song.setTitle(savedtrack.track.name);
             song.setUri(savedtrack.track.uri);
-            song.setServiceType(IPlayer.ServiceType.Spotify);
+            song.setServiceType(ServicePlayer.ServiceType.Spotify);
 
             List<ArtistSimple> artists = savedtrack.track.artists;
             if (artists.size() > 0) {
@@ -104,7 +102,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
 
             song.setTitle(track.name);
             song.setUri(track.uri);
-            song.setServiceType(IPlayer.ServiceType.Spotify);
+            song.setServiceType(ServicePlayer.ServiceType.Spotify);
 
             List<ArtistSimple> artists = track.artists;
             if (artists.size() > 0) {
@@ -178,13 +176,13 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
     }
 
     @Override
-    public void registerListener(IMusicLibraryPlaylistUpdateListener listener) {
-        m_IMusicLibraryPlaylistUpdateListenerList.add(listener);
+    public void registerListener(OnPlaylistUpdateListener listener) {
+        mM_OnPlaylistUpdateListenerList.add(listener);
     }
 
     @Override
-    public void unregisterListener(IMusicLibraryPlaylistUpdateListener listener) {
-        m_IMusicLibraryPlaylistUpdateListenerList.remove(listener);
+    public void unregisterListener(OnPlaylistUpdateListener listener) {
+        mM_OnPlaylistUpdateListenerList.remove(listener);
     }
 
     public class CallbackPlaylistTracks implements Callback<Pager<PlaylistTrack>> {
@@ -198,7 +196,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
 
                     song.setTitle(track.name);
                     song.setUri(track.uri);
-                    song.setServiceType(IPlayer.ServiceType.Spotify);
+                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
 
                     List<ArtistSimple> artists = track.artists;
                     if (artists.size() > 0) {
@@ -248,7 +246,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
 
                     song.setTitle(track.name);
                     song.setUri(track.uri);
-                    song.setServiceType(IPlayer.ServiceType.Spotify);
+                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
 
                     List<ArtistSimple> artists = track.artists;
                     if (artists.size() > 0) {
@@ -289,7 +287,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
 
                     song.setTitle(strack.name);
                     song.setUri(strack.uri);
-                    song.setServiceType(IPlayer.ServiceType.Spotify);
+                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
 
                     List<ArtistSimple> artists = strack.artists;
                     if (artists.size() > 0) {
@@ -350,7 +348,7 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
 
                     song.setTitle(track.name);
                     song.setUri(track.uri);
-                    song.setServiceType(IPlayer.ServiceType.Spotify);
+                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
 
                     List<ArtistSimple> artists = track.artists;
                     if (artists.size() > 0) {
@@ -383,9 +381,9 @@ public class SpotifyPlaylist implements IMusicLibraryPlaylist {
     }
 
     private void notifyListener() {
-        for (IMusicLibraryPlaylistUpdateListener listener : m_IMusicLibraryPlaylistUpdateListenerList) {
+        for (OnPlaylistUpdateListener listener : mM_OnPlaylistUpdateListenerList) {
             if(listener != null) {
-                listener.onMusicLibraryPlaylistUpdate();
+                listener.onPlaylistUpdate();
             }
         }
     }

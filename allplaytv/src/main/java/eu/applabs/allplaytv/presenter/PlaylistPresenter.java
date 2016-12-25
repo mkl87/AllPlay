@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaytv.R;
 
 
@@ -51,7 +51,7 @@ public class PlaylistPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
-        IMusicLibraryPlaylist playlist = (IMusicLibraryPlaylist) item;
+        ServicePlaylist playlist = (ServicePlaylist) item;
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         cardView.setTitleText(playlist.getPlaylistName());
         cardView.setContentText(String.valueOf(playlist.getSize()));

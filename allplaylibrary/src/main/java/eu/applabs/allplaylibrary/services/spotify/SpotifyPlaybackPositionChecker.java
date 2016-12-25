@@ -7,7 +7,7 @@ import com.spotify.sdk.android.player.Player;
 
 import java.util.List;
 
-import eu.applabs.allplaylibrary.player.IPlayerListener;
+import eu.applabs.allplaylibrary.player.PlayerListener;
 
 public class SpotifyPlaybackPositionChecker implements Runnable {
 
@@ -15,15 +15,15 @@ public class SpotifyPlaybackPositionChecker implements Runnable {
     private static final long s_SleepTime = 1000;
 
     private boolean m_Running = false;
-    private List<IPlayerListener> m_IPlayerListenerList = null;
+    private List<PlayerListener> m_IPlayerListenerList = null;
     private Player m_Player = null;
 
-    public SpotifyPlaybackPositionChecker(List<IPlayerListener> list, Player player) {
+    public SpotifyPlaybackPositionChecker(List<PlayerListener> list, Player player) {
         m_IPlayerListenerList = list;
         m_Player = player;
     }
 
-    public synchronized void updateIPlayerListenerList(List<IPlayerListener> list) {
+    public synchronized void updateIPlayerListenerList(List<PlayerListener> list) {
         m_IPlayerListenerList = list;
     }
 
@@ -39,7 +39,7 @@ public class SpotifyPlaybackPositionChecker implements Runnable {
         return m_Player;
     }
 
-    private synchronized List<IPlayerListener> getIPlayerListenerList() {
+    private synchronized List<PlayerListener> getIPlayerListenerList() {
         return m_IPlayerListenerList;
     }
 
@@ -70,7 +70,7 @@ public class SpotifyPlaybackPositionChecker implements Runnable {
 
         int percent = (int) (playbackState.positionMs * 100) / (int) durationInMs;
 
-        for(IPlayerListener listener : getIPlayerListenerList()) {
+        for(PlayerListener listener : getIPlayerListenerList()) {
             if(listener != null) {
                 listener.onPlayerPlaybackPositionChanged(percent);
             }

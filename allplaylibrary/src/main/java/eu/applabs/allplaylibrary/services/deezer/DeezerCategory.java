@@ -3,22 +3,21 @@ package eu.applabs.allplaylibrary.services.deezer;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategory;
-import eu.applabs.allplaylibrary.data.IMusicLibraryCategoryUpdateListener;
-import eu.applabs.allplaylibrary.data.IMusicLibraryPlaylist;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 
-public class DeezerCategory implements IMusicLibraryCategory {
+public class DeezerCategory implements ServiceCategory {
     private String m_Name = null;
     private MusicLibrary m_MusicLibrary = null;
-    private List<IMusicLibraryPlaylist> m_IMusicLibraryPlaylistList = null;
-    private List<IMusicLibraryCategoryUpdateListener> m_IMusicLibraryCategoryUpdateListenerList = null;
+    private List<ServicePlaylist> mM_ServicePlaylistList = null;
+    private List<OnCategoryUpdateListener> mM_OnCategoryUpdateListenerList = null;
 
     public DeezerCategory(String name) {
         m_Name = name;
 
-        m_IMusicLibraryPlaylistList = new CopyOnWriteArrayList<>();
-        m_IMusicLibraryCategoryUpdateListenerList = new CopyOnWriteArrayList<>();
+        mM_ServicePlaylistList = new CopyOnWriteArrayList<>();
+        mM_OnCategoryUpdateListenerList = new CopyOnWriteArrayList<>();
 
         m_MusicLibrary = MusicLibrary.getInstance();
         registerListener(m_MusicLibrary);
@@ -26,11 +25,11 @@ public class DeezerCategory implements IMusicLibraryCategory {
 
     @Override
     public void clearCategory() {
-        for(IMusicLibraryPlaylist playlist : m_IMusicLibraryPlaylistList) {
+        for(ServicePlaylist playlist : mM_ServicePlaylistList) {
             playlist.clearPlaylist();
         }
 
-        m_IMusicLibraryPlaylistList.clear();
+        mM_ServicePlaylistList.clear();
     }
 
     @Override
@@ -39,35 +38,35 @@ public class DeezerCategory implements IMusicLibraryCategory {
     }
 
     @Override
-    public void addPlaylist(IMusicLibraryPlaylist playlist) {
-        m_IMusicLibraryPlaylistList.add(playlist);
+    public void addPlaylist(ServicePlaylist playlist) {
+        mM_ServicePlaylistList.add(playlist);
         notifyListener();
     }
 
     @Override
-    public void removePlaylist(IMusicLibraryPlaylist playlist) {
-        m_IMusicLibraryPlaylistList.remove(playlist);
+    public void removePlaylist(ServicePlaylist playlist) {
+        mM_ServicePlaylistList.remove(playlist);
         notifyListener();
     }
 
     @Override
-    public List<IMusicLibraryPlaylist> getPlaylists() {
-        return m_IMusicLibraryPlaylistList;
+    public List<ServicePlaylist> getPlaylists() {
+        return mM_ServicePlaylistList;
     }
 
     @Override
-    public void registerListener(IMusicLibraryCategoryUpdateListener listener) {
-        m_IMusicLibraryCategoryUpdateListenerList.add(listener);
+    public void registerListener(OnCategoryUpdateListener listener) {
+        mM_OnCategoryUpdateListenerList.add(listener);
     }
 
     @Override
-    public void unregisterListener(IMusicLibraryCategoryUpdateListener listener) {
-        m_IMusicLibraryCategoryUpdateListenerList.remove(listener);
+    public void unregisterListener(OnCategoryUpdateListener listener) {
+        mM_OnCategoryUpdateListenerList.remove(listener);
     }
 
     private void notifyListener() {
-        for(IMusicLibraryCategoryUpdateListener listener : m_IMusicLibraryCategoryUpdateListenerList) {
-            listener.onMusicLibraryCategoryUpdate();
+        for(OnCategoryUpdateListener listener : mM_OnCategoryUpdateListenerList) {
+            listener.onCategoryUpdate();
         }
     }
 }

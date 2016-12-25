@@ -23,8 +23,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
-import eu.applabs.allplaylibrary.player.IPlayer;
-import eu.applabs.allplaylibrary.player.IPlayerListener;
+import eu.applabs.allplaylibrary.player.PlayerListener;
+import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.data.Song;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -36,7 +36,7 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, ConnectionStateCallback {
+public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback, ConnectionStateCallback {
 
     private static final String CLASSNAME = SpotifyPlayer.class.getSimpleName();
 
@@ -49,10 +49,10 @@ public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, Conn
     private UserPrivate m_User = null;
     private SpotifyService m_SpotifyService = null;
 
-    private List<IPlayerListener> m_IPlayerListenerList = null;
+    private List<PlayerListener> m_IPlayerListenerList = null;
 
     private MusicLibrary m_MusicLibrary = null;
-    private SpotifyMusicLibrary m_SpotifyMusicLibrary = null;
+    private SpotifyServiceWrapper mM_SpotifyServiceWrapper = null;
     private SpotifyCategory m_SpotifyCategoryPlaylists = null;
     private SpotifyCategory m_SpotifyCategoryAlbums = null;
     private SpotifyCategory m_SpotifyCategoryArtists = null;
@@ -88,8 +88,8 @@ public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, Conn
             });
         }
 
-        m_SpotifyMusicLibrary.clearLibrary();
-        m_MusicLibrary.removeMusicLibrary(m_SpotifyMusicLibrary);
+        mM_SpotifyServiceWrapper.clearLibrary();
+        m_MusicLibrary.removeMusicLibrary(mM_SpotifyServiceWrapper);
 
         Spotify.destroyPlayer(m_Activity);
     }
@@ -108,8 +108,8 @@ public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, Conn
 
     @Override
     public void logout() {
-        if(m_MusicLibrary != null && m_SpotifyMusicLibrary != null && m_Activity != null) {
-            m_MusicLibrary.removeMusicLibrary(m_SpotifyMusicLibrary);
+        if(m_MusicLibrary != null && mM_SpotifyServiceWrapper != null && m_Activity != null) {
+            m_MusicLibrary.removeMusicLibrary(mM_SpotifyServiceWrapper);
             AuthenticationClient.stopLoginActivity(m_Activity, 0);
         }
     }
@@ -135,13 +135,13 @@ public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, Conn
                         SpotifyApi api = new SpotifyApi();
                         api.setAccessToken(authenticationresponse.getAccessToken());
                         m_SpotifyService = api.getService();
-                        m_SpotifyMusicLibrary.setSpotifyService(m_SpotifyService);
+                        mM_SpotifyServiceWrapper.setSpotifyService(m_SpotifyService);
 
                         m_SpotifyService.getMe(new Callback<UserPrivate>() {
                             @Override
                             public void success(UserPrivate user, Response response) {
                                 m_User = user;
-                                m_SpotifyMusicLibrary.setSpotifyUser(user);
+                                mM_SpotifyServiceWrapper.setSpotifyUser(user);
                                 loadPlaylists(user.id, 0);
                                 loadSongsAndAlbums(0);
                             }
@@ -281,14 +281,14 @@ public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, Conn
     }
 
     @Override
-    public void registerListener(IPlayerListener listener) {
+    public void registerListener(PlayerListener listener) {
         if(m_IPlayerListenerList != null) {
             m_IPlayerListenerList.add(listener);
         }
     }
 
     @Override
-    public void unregisterListener(IPlayerListener listener) {
+    public void unregisterListener(PlayerListener listener) {
         if(m_IPlayerListenerList != null) {
             m_IPlayerListenerList.remove(listener);
         }
@@ -351,44 +351,44 @@ public class SpotifyPlayer implements IPlayer, Player.NotificationCallback, Conn
         State old_state = m_State;
         m_State = new_state;
 
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onPlayerStateChanged(ServiceType.Spotify, old_state, new_state);
         }
     }
 
     private void processEvent(Event event) {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onPlayerEvent(event);
         }
     }
 
     private void notifyLoginSuccess() {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLoginSuccess(ServiceType.Spotify);
         }
     }
 
     private void notifyLoginError() {
-        for(IPlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : m_IPlayerListenerList) {
             listener.onLoginError(ServiceType.Spotify);
         }
     }
 
     private void addMusicLibrary() {
         m_MusicLibrary = MusicLibrary.getInstance();
-        m_SpotifyMusicLibrary = new SpotifyMusicLibrary(m_Activity);
+        mM_SpotifyServiceWrapper = new SpotifyServiceWrapper(m_Activity);
 
         m_SpotifyCategoryPlaylists = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_playlists));
         m_SpotifyCategoryAlbums = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_albums));
         m_SpotifyCategoryArtists = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_artists));
         m_SpotifyCategorySongs = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_songs));
 
-        m_SpotifyMusicLibrary.addCategory(m_SpotifyCategoryPlaylists);
-        m_SpotifyMusicLibrary.addCategory(m_SpotifyCategoryAlbums);
-        m_SpotifyMusicLibrary.addCategory(m_SpotifyCategoryArtists);
-        m_SpotifyMusicLibrary.addCategory(m_SpotifyCategorySongs);
+        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategoryPlaylists);
+        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategoryAlbums);
+        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategoryArtists);
+        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategorySongs);
 
-        m_MusicLibrary.addMusicLibrary(m_SpotifyMusicLibrary);
+        m_MusicLibrary.addMusicLibrary(mM_SpotifyServiceWrapper);
     }
 
     private void loadPlaylists(final String userId, int offset) {
