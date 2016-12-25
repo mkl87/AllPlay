@@ -38,44 +38,44 @@ import retrofit.client.Response;
 
 public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback, ConnectionStateCallback {
 
-    private static final String CLASSNAME = SpotifyPlayer.class.getSimpleName();
+    private static final String TAG = SpotifyPlayer.class.getSimpleName();
 
-    private Activity m_Activity = null;
-    private Player m_Player = null;
-    private boolean m_TrackEndBroadcastEnabled = true;
-    private State m_State = State.Idle;
+    private Activity mActivity = null;
+    private Player mPlayer = null;
+    private boolean mTrackEndBroadcastEnabled = true;
+    private State mState = State.Idle;
 
     private static final int REQUEST_CODE = 1337;
-    private UserPrivate m_User = null;
-    private SpotifyService m_SpotifyService = null;
+    private UserPrivate mUser;
+    private SpotifyService mSpotifyService;
 
-    private List<PlayerListener> m_IPlayerListenerList = null;
+    private List<PlayerListener> mIPlayerListenerList = new CopyOnWriteArrayList<>();
 
-    private MusicLibrary m_MusicLibrary = null;
-    private SpotifyServiceWrapper mM_SpotifyServiceWrapper = null;
-    private SpotifyCategory m_SpotifyCategoryPlaylists = null;
-    private SpotifyCategory m_SpotifyCategoryAlbums = null;
-    private SpotifyCategory m_SpotifyCategoryArtists = null;
-    private SpotifyCategory m_SpotifyCategorySongs = null;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private SpotifyServiceWrapper mSpotifyServiceWrapper;
+    private SpotifyCategory mSpotifyCategoryPlaylists;
+    private SpotifyCategory mSpotifyCategoryAlbums;
+    private SpotifyCategory mSpotifyCategoryArtists;
+    private SpotifyCategory mSpotifyCategorySongs;
 
-    private Thread m_SpotifyPlaybackPositionCheckerThread = null;
-    private SpotifyPlaybackPositionChecker m_SpotifyPlaybackPositionChecker = null;
+    private Thread m_SpotifyPlaybackPositionCheckerThread;
+    private SpotifyPlaybackPositionChecker m_SpotifyPlaybackPositionChecker;
 
     public SpotifyPlayer() {
-        m_IPlayerListenerList = new CopyOnWriteArrayList<>();
+
     }
 
     @Override
     public void initialize(Activity activity) {
         if(activity != null) {
-            m_Activity = activity;
+            mActivity = activity;
         }
     }
 
     @Override
     public void clearPlayer() {
-        if(m_Player != null) {
-            m_Player.pause(new Player.OperationCallback() {
+        if(mPlayer != null) {
+            mPlayer.pause(new Player.OperationCallback() {
                 @Override
                 public void onSuccess() {
 
@@ -88,29 +88,29 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
             });
         }
 
-        mM_SpotifyServiceWrapper.clearLibrary();
-        m_MusicLibrary.removeMusicLibrary(mM_SpotifyServiceWrapper);
+        mSpotifyServiceWrapper.clearLibrary();
+        mMusicLibrary.removeMusicLibrary(mSpotifyServiceWrapper);
 
-        Spotify.destroyPlayer(m_Activity);
+        Spotify.destroyPlayer(mActivity);
     }
 
     @Override
     public void login() {
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(
-                m_Activity.getResources().getString(R.string.spotify_client_id),
+                mActivity.getResources().getString(R.string.spotify_client_id),
                 AuthenticationResponse.Type.TOKEN,
-                m_Activity.getResources().getString(R.string.spotify_redirect_uri));
+                mActivity.getResources().getString(R.string.spotify_redirect_uri));
 
-        builder.setScopes(m_Activity.getResources().getStringArray(R.array.spotify_permissions));
+        builder.setScopes(mActivity.getResources().getStringArray(R.array.spotify_permissions));
         AuthenticationRequest request = builder.build();
-        AuthenticationClient.openLoginActivity(m_Activity, REQUEST_CODE, request);
+        AuthenticationClient.openLoginActivity(mActivity, REQUEST_CODE, request);
     }
 
     @Override
     public void logout() {
-        if(m_MusicLibrary != null && mM_SpotifyServiceWrapper != null && m_Activity != null) {
-            m_MusicLibrary.removeMusicLibrary(mM_SpotifyServiceWrapper);
-            AuthenticationClient.stopLoginActivity(m_Activity, 0);
+        if(mMusicLibrary != null && mSpotifyServiceWrapper != null && mActivity != null) {
+            mMusicLibrary.removeMusicLibrary(mSpotifyServiceWrapper);
+            AuthenticationClient.stopLoginActivity(mActivity, 0);
         }
     }
 
@@ -120,28 +120,28 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
             final AuthenticationResponse authenticationresponse = AuthenticationClient.getResponse(resultCode, intent);
 
             if (authenticationresponse.getType() == AuthenticationResponse.Type.TOKEN) {
-                Config playerConfig = new Config(m_Activity, authenticationresponse.getAccessToken(), m_Activity.getResources().getString(R.string.spotify_client_id));
+                Config playerConfig = new Config(mActivity, authenticationresponse.getAccessToken(), mActivity.getResources().getString(R.string.spotify_client_id));
                 Spotify.getPlayer(playerConfig, this, new com.spotify.sdk.android.player.SpotifyPlayer.InitializationObserver() {
                     @Override
                     public void onInitialized(com.spotify.sdk.android.player.SpotifyPlayer spotifyPlayer) {
                         addMusicLibrary();
                         notifyLoginSuccess();
 
-                        m_Player = spotifyPlayer;
-                        m_SpotifyPlaybackPositionChecker = new SpotifyPlaybackPositionChecker(m_IPlayerListenerList, m_Player);
-                        m_Player.addConnectionStateCallback(SpotifyPlayer.this);
-                        m_Player.addNotificationCallback(SpotifyPlayer.this);
+                        mPlayer = spotifyPlayer;
+                        m_SpotifyPlaybackPositionChecker = new SpotifyPlaybackPositionChecker(mIPlayerListenerList, mPlayer);
+                        mPlayer.addConnectionStateCallback(SpotifyPlayer.this);
+                        mPlayer.addNotificationCallback(SpotifyPlayer.this);
 
                         SpotifyApi api = new SpotifyApi();
                         api.setAccessToken(authenticationresponse.getAccessToken());
-                        m_SpotifyService = api.getService();
-                        mM_SpotifyServiceWrapper.setSpotifyService(m_SpotifyService);
+                        mSpotifyService = api.getService();
+                        mSpotifyServiceWrapper.setSpotifyService(mSpotifyService);
 
-                        m_SpotifyService.getMe(new Callback<UserPrivate>() {
+                        mSpotifyService.getMe(new Callback<UserPrivate>() {
                             @Override
                             public void success(UserPrivate user, Response response) {
-                                m_User = user;
-                                mM_SpotifyServiceWrapper.setSpotifyUser(user);
+                                mUser = user;
+                                mSpotifyServiceWrapper.setSpotifyUser(user);
                                 loadPlaylists(user.id, 0);
                                 loadSongsAndAlbums(0);
                             }
@@ -174,18 +174,18 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public State getPlayerState() {
-        return m_State;
+        return mState;
     }
 
     @Override
     public boolean play(Song song) {
         if(song != null && song.getServiceType() == ServiceType.Spotify) {
-            if(m_Player != null) {
-                if(m_State == State.Playing || m_State == State.Paused) {
-                    m_TrackEndBroadcastEnabled = false;
+            if(mPlayer != null) {
+                if(mState == State.Playing || mState == State.Paused) {
+                    mTrackEndBroadcastEnabled = false;
                 }
 
-                m_Player.playUri(new Player.OperationCallback() {
+                mPlayer.playUri(new Player.OperationCallback() {
                     @Override
                     public void onSuccess() {
 
@@ -209,8 +209,8 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     public boolean resume(Song song) {
         if(song != null && song.getServiceType() == ServiceType.Spotify) {
 
-            if(m_Player != null) {
-                m_Player.resume(new Player.OperationCallback() {
+            if(mPlayer != null) {
+                mPlayer.resume(new Player.OperationCallback() {
                     @Override
                     public void onSuccess() {
 
@@ -234,8 +234,8 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     public boolean pause(Song song) {
         if(song != null && song.getServiceType() == ServiceType.Spotify) {
 
-            if(m_Player != null) {
-                m_Player.pause(new Player.OperationCallback() {
+            if(mPlayer != null) {
+                mPlayer.pause(new Player.OperationCallback() {
                     @Override
                     public void onSuccess() {
 
@@ -259,8 +259,8 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     public boolean stop(Song song) {
         if(song != null && song.getServiceType() == ServiceType.Spotify) {
 
-            if(m_Player != null) {
-                m_Player.pause(new Player.OperationCallback() {
+            if(mPlayer != null) {
+                mPlayer.pause(new Player.OperationCallback() {
                     @Override
                     public void onSuccess() {
 
@@ -282,15 +282,15 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public void registerListener(PlayerListener listener) {
-        if(m_IPlayerListenerList != null) {
-            m_IPlayerListenerList.add(listener);
+        if(mIPlayerListenerList != null) {
+            mIPlayerListenerList.add(listener);
         }
     }
 
     @Override
     public void unregisterListener(PlayerListener listener) {
-        if(m_IPlayerListenerList != null) {
-            m_IPlayerListenerList.remove(listener);
+        if(mIPlayerListenerList != null) {
+            mIPlayerListenerList.remove(listener);
         }
     }
 
@@ -322,12 +322,12 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     @Override
     public void onPlaybackEvent(PlayerEvent playerEvent) {
         if(playerEvent == PlayerEvent.kSpPlaybackNotifyContextChanged) {
-            m_TrackEndBroadcastEnabled = true;
-        } else if (playerEvent == PlayerEvent.kSpPlaybackNotifyTrackDelivered && m_TrackEndBroadcastEnabled) {
+            mTrackEndBroadcastEnabled = true;
+        } else if (playerEvent == PlayerEvent.kSpPlaybackNotifyTrackDelivered && mTrackEndBroadcastEnabled) {
             processEvent(Event.TrackEnd);
         } else if (playerEvent == PlayerEvent.kSpPlaybackNotifyPlay) {
-            m_SpotifyPlaybackPositionChecker.updateIPlayerListenerList(m_IPlayerListenerList);
-            m_SpotifyPlaybackPositionChecker.updatePlayer(m_Player);
+            m_SpotifyPlaybackPositionChecker.updateIPlayerListenerList(mIPlayerListenerList);
+            m_SpotifyPlaybackPositionChecker.updatePlayer(mPlayer);
             m_SpotifyPlaybackPositionCheckerThread = new Thread(m_SpotifyPlaybackPositionChecker);
             m_SpotifyPlaybackPositionCheckerThread.start();
         } else if (playerEvent == PlayerEvent.kSpPlaybackNotifyPause) {
@@ -335,7 +335,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
                 m_SpotifyPlaybackPositionChecker.setStopFlag();
                 m_SpotifyPlaybackPositionCheckerThread.join();
             } catch(Exception e) {
-                Log.e(CLASSNAME, "Wait for stop failed");
+                Log.e(TAG, "Wait for stop failed");
             }
         }
     }
@@ -348,47 +348,46 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     }
 
     private void changeState(State new_state) {
-        State old_state = m_State;
-        m_State = new_state;
+        State old_state = mState;
+        mState = new_state;
 
-        for(PlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : mIPlayerListenerList) {
             listener.onPlayerStateChanged(ServiceType.Spotify, old_state, new_state);
         }
     }
 
     private void processEvent(Event event) {
-        for(PlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : mIPlayerListenerList) {
             listener.onPlayerEvent(event);
         }
     }
 
     private void notifyLoginSuccess() {
-        for(PlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : mIPlayerListenerList) {
             listener.onLoginSuccess(ServiceType.Spotify);
         }
     }
 
     private void notifyLoginError() {
-        for(PlayerListener listener : m_IPlayerListenerList) {
+        for(PlayerListener listener : mIPlayerListenerList) {
             listener.onLoginError(ServiceType.Spotify);
         }
     }
 
     private void addMusicLibrary() {
-        m_MusicLibrary = MusicLibrary.getInstance();
-        mM_SpotifyServiceWrapper = new SpotifyServiceWrapper(m_Activity);
+        mSpotifyServiceWrapper = new SpotifyServiceWrapper(mActivity);
 
-        m_SpotifyCategoryPlaylists = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_playlists));
-        m_SpotifyCategoryAlbums = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_albums));
-        m_SpotifyCategoryArtists = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_artists));
-        m_SpotifyCategorySongs = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_songs));
+        mSpotifyCategoryPlaylists = new SpotifyCategory(mActivity.getResources().getString(R.string.category_playlists));
+        mSpotifyCategoryAlbums = new SpotifyCategory(mActivity.getResources().getString(R.string.category_albums));
+        mSpotifyCategoryArtists = new SpotifyCategory(mActivity.getResources().getString(R.string.category_artists));
+        mSpotifyCategorySongs = new SpotifyCategory(mActivity.getResources().getString(R.string.category_songs));
 
-        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategoryPlaylists);
-        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategoryAlbums);
-        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategoryArtists);
-        mM_SpotifyServiceWrapper.addCategory(m_SpotifyCategorySongs);
+        mSpotifyServiceWrapper.addCategory(mSpotifyCategoryPlaylists);
+        mSpotifyServiceWrapper.addCategory(mSpotifyCategoryAlbums);
+        mSpotifyServiceWrapper.addCategory(mSpotifyCategoryArtists);
+        mSpotifyServiceWrapper.addCategory(mSpotifyCategorySongs);
 
-        m_MusicLibrary.addMusicLibrary(mM_SpotifyServiceWrapper);
+        mMusicLibrary.addMusicLibrary(mSpotifyServiceWrapper);
     }
 
     private void loadPlaylists(final String userId, int offset) {
@@ -397,15 +396,15 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
         optionMap.put(SpotifyService.OFFSET, offset);
         optionMap.put(SpotifyService.LIMIT, LIMIT);
 
-        m_SpotifyService.getPlaylists(userId, optionMap, new Callback<Pager<PlaylistSimple>>() {
+        mSpotifyService.getPlaylists(userId, optionMap, new Callback<Pager<PlaylistSimple>>() {
             @Override
             public void success(Pager<PlaylistSimple> playlistPager, Response response) {
                 if (playlistPager != null && playlistPager.items != null) {
 
                     for (PlaylistSimple plist : playlistPager.items) {
-                        SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(m_SpotifyService, plist.name, plist.owner.id, plist.id, plist.images);
-                        m_SpotifyService.getPlaylistTracks(plist.owner.id, plist.id, spotifyPlaylist.getCallbackPlaylistTracks());
-                        m_SpotifyCategoryPlaylists.addPlaylist(spotifyPlaylist);
+                        SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(mSpotifyService, plist.name, plist.owner.id, plist.id, plist.images);
+                        mSpotifyService.getPlaylistTracks(plist.owner.id, plist.id, spotifyPlaylist.getCallbackPlaylistTracks());
+                        mSpotifyCategoryPlaylists.addPlaylist(spotifyPlaylist);
                     }
 
                     if (playlistPager.next != null) {
@@ -430,7 +429,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
         final ArrayList<String> artists = new ArrayList<>();
         final ArrayList<SavedTrack> songs = new ArrayList<>();
 
-        m_SpotifyService.getMySavedTracks(optionMap, new Callback<Pager<SavedTrack>>() {
+        mSpotifyService.getMySavedTracks(optionMap, new Callback<Pager<SavedTrack>>() {
             @Override
             public void success(Pager<SavedTrack> savedTrackPager, Response response) {
                 if (savedTrackPager != null && savedTrackPager.items != null) {
@@ -440,19 +439,19 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
                         if (!albums.contains(track.track.album.id)) {
                             albums.add(track.track.album.id);
 
-                            SpotifyPlaylist albumPlaylist = new SpotifyPlaylist(m_SpotifyService, track.track.album.name, "", "", track.track.album.images);
-                            m_SpotifyCategoryAlbums.addPlaylist(albumPlaylist);
-                            m_SpotifyService.getAlbum(track.track.album.id, albumPlaylist.getCallbackAlbum());
+                            SpotifyPlaylist albumPlaylist = new SpotifyPlaylist(mSpotifyService, track.track.album.name, "", "", track.track.album.images);
+                            mSpotifyCategoryAlbums.addPlaylist(albumPlaylist);
+                            mSpotifyService.getAlbum(track.track.album.id, albumPlaylist.getCallbackAlbum());
                         }
 
                         if (!artists.contains(track.track.artists.get(0).id)) {
                             artists.add(track.track.artists.get(0).id);
 
-                            SpotifyPlaylist artistPlaylist = new SpotifyPlaylist(m_SpotifyService, track.track.artists.get(0).name, "", "", null);
-                            m_SpotifyCategoryArtists.addPlaylist(artistPlaylist);
+                            SpotifyPlaylist artistPlaylist = new SpotifyPlaylist(mSpotifyService, track.track.artists.get(0).name, "", "", null);
+                            mSpotifyCategoryArtists.addPlaylist(artistPlaylist);
 
-                            m_SpotifyService.getArtist(track.track.artists.get(0).id, artistPlaylist.getCallbackArtist());
-                            m_SpotifyService.getArtistTopTrack(track.track.artists.get(0).id, m_User.country, artistPlaylist.getCallbackArtistTopTracks());
+                            mSpotifyService.getArtist(track.track.artists.get(0).id, artistPlaylist.getCallbackArtist());
+                            mSpotifyService.getArtistTopTrack(track.track.artists.get(0).id, mUser.country, artistPlaylist.getCallbackArtistTopTracks());
                         }
                     }
 
@@ -462,16 +461,16 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
                         SpotifyPlaylist songsPlaylist;
 
                         if(songs.size() > 0) {
-                            songsPlaylist = new SpotifyPlaylist(m_SpotifyService, m_Activity.getResources().getString(R.string.category_songs), "", "", songs.get(0).track.album.images);
+                            songsPlaylist = new SpotifyPlaylist(mSpotifyService, mActivity.getResources().getString(R.string.category_songs), "", "", songs.get(0).track.album.images);
                         } else {
-                            songsPlaylist = new SpotifyPlaylist(m_SpotifyService, m_Activity.getResources().getString(R.string.category_songs), "", "", null);
+                            songsPlaylist = new SpotifyPlaylist(mSpotifyService, mActivity.getResources().getString(R.string.category_songs), "", "", null);
                         }
 
                         for(SavedTrack track : songs) {
                             songsPlaylist.addSavedTrack(track);
                         }
 
-                        m_SpotifyCategorySongs.addPlaylist(songsPlaylist);
+                        mSpotifyCategorySongs.addPlaylist(songsPlaylist);
                     }
                 }
             }

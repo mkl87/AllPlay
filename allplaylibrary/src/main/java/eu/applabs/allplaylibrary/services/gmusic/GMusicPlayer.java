@@ -9,13 +9,13 @@ import eu.applabs.allplaylibrary.player.ServicePlayer;
 
 public class GMusicPlayer implements ServicePlayer {
 
-    private Activity m_Activity = null;
+    private Activity mActivity = null;
 
     @Override
     public void initialize(Activity activity) {
-        m_Activity = activity;
+        mActivity = activity;
 
-        GMusicLoginDialog ld = new GMusicLoginDialog(m_Activity);
+        GMusicLoginDialog ld = new GMusicLoginDialog(mActivity);
         ld.show();
     }
 

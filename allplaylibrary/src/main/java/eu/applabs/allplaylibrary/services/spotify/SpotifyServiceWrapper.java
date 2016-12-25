@@ -24,64 +24,63 @@ import kaaes.spotify.webapi.android.models.UserPrivate;
 
 public class SpotifyServiceWrapper implements ServiceLibrary {
 
-    Activity m_Activity = null;
+    Activity mActivity = null;
 
-    SpotifyService m_SpotifyService = null;
-    UserPrivate m_User = null;
-    List<ServiceCategory> mM_ServiceCategoryList = null;
+    SpotifyService mSpotifyService = null;
+    UserPrivate mUser = null;
+    List<ServiceCategory> mServiceCategoryList = new CopyOnWriteArrayList<>();;
 
     public SpotifyServiceWrapper(Activity activity) {
-        m_Activity = activity;
-        mM_ServiceCategoryList = new CopyOnWriteArrayList<>();
+        mActivity = activity;
     }
 
     @Override
     public void clearLibrary() {
-        for(ServiceCategory category : mM_ServiceCategoryList) {
+        for(ServiceCategory category : mServiceCategoryList) {
             category.clearCategory();
         }
 
-        mM_ServiceCategoryList.clear();
+        mServiceCategoryList.clear();
     }
 
     @Override
     public List<ServiceCategory> getCategories() {
-        return mM_ServiceCategoryList;
+        return mServiceCategoryList;
     }
 
     public void setSpotifyService(SpotifyService service) {
-        m_SpotifyService = service;
+        mSpotifyService = service;
     }
 
     public void setSpotifyUser(UserPrivate user) {
-        m_User = user;
+        mUser = user;
     }
 
     public void addCategory(ServiceCategory category) {
-        mM_ServiceCategoryList.add(category);
+        mServiceCategoryList.add(category);
     }
 
     public void removeCategory(ServiceCategory category) {
-        mM_ServiceCategoryList.remove(category);
+        mServiceCategoryList.remove(category);
     }
 
     @Override
     public List<ServiceCategory> search(String query) {
-        if(m_SpotifyService != null) {
+        if(mSpotifyService != null) {
             List<ServiceCategory> result = new CopyOnWriteArrayList<>();
 
-            ArtistsPager artistsPager = m_SpotifyService.searchArtists(query);
+            ArtistsPager artistsPager = mSpotifyService.searchArtists(query);
 
             if(artistsPager != null && artistsPager.artists != null && artistsPager.artists.items != null) {
-                SpotifyCategory spotifyCategory = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_artists));
+                SpotifyCategory spotifyCategory = new SpotifyCategory(mActivity.getResources().getString(R.string.category_artists));
                 List<Artist> list = artistsPager.artists.items;
 
                 for(Artist a : list) {
-                    if(a != null && a.id != null && m_User != null) {
-                        Tracks tracks = m_SpotifyService.getArtistTopTrack(a.id, m_User.country);
+                    if(a != null && a.id != null && mUser != null) {
+                        Tracks tracks = mSpotifyService.getArtistTopTrack(a.id, mUser.country);
 
                         if (tracks != null) {
-                            SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(m_SpotifyService, a.name, "", "", a.images);
+                            SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(mSpotifyService, a.name, "", "", a.images);
                             spotifyPlaylist.getCallbackArtistTopTracks().success(tracks, null);
                             spotifyCategory.addPlaylist(spotifyPlaylist);
                         }
@@ -93,18 +92,18 @@ public class SpotifyServiceWrapper implements ServiceLibrary {
                 }
             }
 
-            AlbumsPager albumsPager = m_SpotifyService.searchAlbums(query);
+            AlbumsPager albumsPager = mSpotifyService.searchAlbums(query);
 
             if(albumsPager != null && albumsPager.albums != null && albumsPager.albums.items != null) {
-                SpotifyCategory spotifyCategory = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_albums));
+                SpotifyCategory spotifyCategory = new SpotifyCategory(mActivity.getResources().getString(R.string.category_albums));
                 List<AlbumSimple> list = albumsPager.albums.items;
 
                 for(AlbumSimple as : list) {
                     if(as != null && as.id != null) {
-                        Album album = m_SpotifyService.getAlbum(as.id);
+                        Album album = mSpotifyService.getAlbum(as.id);
 
                         if (album != null) {
-                            SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(m_SpotifyService, album.name, "", "", album.images);
+                            SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(mSpotifyService, album.name, "", "", album.images);
                             spotifyPlaylist.getCallbackAlbum().success(album, null);
                             spotifyCategory.addPlaylist(spotifyPlaylist);
                         }
@@ -116,14 +115,14 @@ public class SpotifyServiceWrapper implements ServiceLibrary {
                 }
             }
 
-            TracksPager trap = m_SpotifyService.searchTracks(query);
+            TracksPager trap = mSpotifyService.searchTracks(query);
 
             if(trap != null && trap.tracks != null && trap.tracks.items != null) {
-                SpotifyCategory spotifyCategory = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_songs));
+                SpotifyCategory spotifyCategory = new SpotifyCategory(mActivity.getResources().getString(R.string.category_songs));
                 List<Track> list = trap.tracks.items;
 
                 for(Track t : list) {
-                    SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(m_SpotifyService, t.name, "", "", t.album.images);
+                    SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(mSpotifyService, t.name, "", "", t.album.images);
                     spotifyPlaylist.addTrack(t);
                     spotifyCategory.addPlaylist(spotifyPlaylist);
                 }
@@ -133,18 +132,18 @@ public class SpotifyServiceWrapper implements ServiceLibrary {
                 }
             }
 
-            PlaylistsPager playlistsPager = m_SpotifyService.searchPlaylists(query);
+            PlaylistsPager playlistsPager = mSpotifyService.searchPlaylists(query);
 
             if(playlistsPager != null && playlistsPager.playlists != null && playlistsPager.playlists.items != null) {
-                SpotifyCategory spotifyCategory = new SpotifyCategory(m_Activity.getResources().getString(R.string.category_playlists));
+                SpotifyCategory spotifyCategory = new SpotifyCategory(mActivity.getResources().getString(R.string.category_playlists));
                 List<PlaylistSimple> list = playlistsPager.playlists.items;
 
                 for(PlaylistSimple ps : list) {
                     if(ps != null && ps.owner != null && ps.owner.id != null && ps.id != null) {
-                        Playlist playlist = m_SpotifyService.getPlaylist(ps.owner.id, ps.id);
+                        Playlist playlist = mSpotifyService.getPlaylist(ps.owner.id, ps.id);
 
                         if (playlist != null) {
-                            SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(m_SpotifyService, playlist.name, ps.owner.id, ps.id, playlist.images);
+                            SpotifyPlaylist spotifyPlaylist = new SpotifyPlaylist(mSpotifyService, playlist.name, ps.owner.id, ps.id, playlist.images);
                             spotifyPlaylist.getCallbackPlaylist().success(playlist, null);
                             spotifyCategory.addPlaylist(spotifyPlaylist);
                         }

@@ -9,18 +9,14 @@ import eu.applabs.allplaylibrary.data.MusicLibrary;
 
 public class SpotifyCategory implements ServiceCategory {
 
-    private MusicLibrary m_MusicLibrary = null;
-    private String m_Name = null;
-    private List<ServicePlaylist> mM_ServicePlaylistList = null;
-    private List<OnCategoryUpdateListener> mM_OnCategoryUpdateListenerList = null;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private String mName = null;
+    private List<ServicePlaylist> mM_ServicePlaylistList = new CopyOnWriteArrayList<>();
+    private List<OnCategoryUpdateListener> mM_OnCategoryUpdateListenerList = new CopyOnWriteArrayList<>();
 
     public SpotifyCategory(String name) {
-        m_Name = name;
-        mM_ServicePlaylistList = new CopyOnWriteArrayList<>();
-        mM_OnCategoryUpdateListenerList = new CopyOnWriteArrayList<>();
-
-        m_MusicLibrary = MusicLibrary.getInstance();
-        registerListener(m_MusicLibrary);
+        mName = name;
+        registerListener(mMusicLibrary);
     }
 
     public void addPlaylist(ServicePlaylist playlist) {
@@ -44,7 +40,7 @@ public class SpotifyCategory implements ServiceCategory {
 
     @Override
     public String getCategoryName() {
-        return m_Name;
+        return mName;
     }
 
     @Override

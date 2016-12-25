@@ -27,43 +27,34 @@ import retrofit.client.Response;
 
 public class SpotifyPlaylist implements ServicePlaylist {
 
-    private MusicLibrary m_MusicLibrary = null;
-    private SpotifyService m_SpotifyService = null;
-    private String m_Name = null;
-    private String m_CoverUrl = null;
-    private String m_Owner = null;
-    private String m_Id = null;
-    private List<Song> m_SongList = null;
-    private List<OnPlaylistUpdateListener> mM_OnPlaylistUpdateListenerList = null;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private SpotifyService mSpotifyService;
+    private String mName;
+    private String mCoverUrl;
+    private String mOwner;
+    private String mId;
+    private List<Song> mSongList = new ArrayList<>();
+    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new ArrayList<>();
 
-    private CallbackAlbum m_CallbackAlbum = null;
-    private CallbackPlaylist m_CallbackPlaylist = null;
-    private CallbackPlaylistTracks m_CallbackPlaylistTracks = null;
-    private CallbackArtist m_CallbackArtist = null;
-    private CallbackArtistTopTracks m_CallbackArtistTopTracks = null;
+    private CallbackAlbum mCallbackAlbum = new CallbackAlbum();
+    private CallbackPlaylist mCallbackPlaylist = new CallbackPlaylist();
+    private CallbackPlaylistTracks mCallbackPlaylistTracks = new CallbackPlaylistTracks();
+    private CallbackArtist mCallbackArtist = new CallbackArtist();
+    private CallbackArtistTopTracks mCallbackArtistTopTracks = new CallbackArtistTopTracks();
 
     public SpotifyPlaylist(SpotifyService service, String name, String owner, String id, List<Image> images) {
-        m_CallbackAlbum = new CallbackAlbum();
-        m_CallbackPlaylist = new CallbackPlaylist();
-        m_CallbackArtist = new CallbackArtist();
-        m_CallbackArtistTopTracks = new CallbackArtistTopTracks();
-        m_CallbackPlaylistTracks = new CallbackPlaylistTracks();
-
-        m_SpotifyService = service;
-        m_Name = name;
-        m_Owner = owner;
-        m_Id = id;
-        m_SongList = new ArrayList<>();
-        mM_OnPlaylistUpdateListenerList = new ArrayList<>();
+        mSpotifyService = service;
+        mName = name;
+        mOwner = owner;
+        mId = id;
 
         if(images != null && images.size() > 0) {
-            m_CoverUrl = images.get(0).url;
+            mCoverUrl = images.get(0).url;
         } else {
-            m_CoverUrl = "";
+            mCoverUrl = "";
         }
 
-        m_MusicLibrary = MusicLibrary.getInstance();
-        registerListener(m_MusicLibrary);
+        registerListener(mMusicLibrary);
     }
 
     public void addSavedTrack(SavedTrack savedtrack) {
@@ -91,7 +82,7 @@ public class SpotifyPlaylist implements ServicePlaylist {
                 }
             }
 
-            m_SongList.add(song);
+            mSongList.add(song);
             notifyListener();
         }
     }
@@ -121,45 +112,45 @@ public class SpotifyPlaylist implements ServicePlaylist {
                 }
             }
 
-            m_SongList.add(song);
+            mSongList.add(song);
             notifyListener();
         }
     }
 
     public CallbackAlbum getCallbackAlbum() {
-        return m_CallbackAlbum;
+        return mCallbackAlbum;
     }
 
     public CallbackPlaylist getCallbackPlaylist() {
-        return m_CallbackPlaylist;
+        return mCallbackPlaylist;
     }
 
     public CallbackArtist getCallbackArtist() {
-        return m_CallbackArtist;
+        return mCallbackArtist;
     }
 
     public CallbackArtistTopTracks getCallbackArtistTopTracks() {
-        return m_CallbackArtistTopTracks;
+        return mCallbackArtistTopTracks;
     }
 
     public CallbackPlaylistTracks getCallbackPlaylistTracks() {
-        return m_CallbackPlaylistTracks;
+        return mCallbackPlaylistTracks;
     }
 
     @Override
     public void clearPlaylist() {
-        m_SongList.clear();
+        mSongList.clear();
     }
 
     @Override
     public String getPlaylistName() {
-        return m_Name;
+        return mName;
     }
 
     @Override
     public int getSize() {
-        if(m_SongList != null) {
-            return m_SongList.size();
+        if(mSongList != null) {
+            return mSongList.size();
         }
 
         return 0;
@@ -167,22 +158,22 @@ public class SpotifyPlaylist implements ServicePlaylist {
 
     @Override
     public String getCoverUrl() {
-        return m_CoverUrl;
+        return mCoverUrl;
     }
 
     @Override
     public List<Song> getPlaylist() {
-        return m_SongList;
+        return mSongList;
     }
 
     @Override
     public void registerListener(OnPlaylistUpdateListener listener) {
-        mM_OnPlaylistUpdateListenerList.add(listener);
+        mOnPlaylistUpdateListenerList.add(listener);
     }
 
     @Override
     public void unregisterListener(OnPlaylistUpdateListener listener) {
-        mM_OnPlaylistUpdateListenerList.remove(listener);
+        mOnPlaylistUpdateListenerList.remove(listener);
     }
 
     public class CallbackPlaylistTracks implements Callback<Pager<PlaylistTrack>> {
@@ -215,15 +206,15 @@ public class SpotifyPlaylist implements ServicePlaylist {
                         }
                     }
 
-                    m_SongList.add(song);
+                    mSongList.add(song);
                 }
 
-                if(playlistTrackPager.next != null && m_Id != null && m_Owner != null) {
+                if(playlistTrackPager.next != null && mId != null && mOwner != null) {
                     Map<String, Object> optionMap = new HashMap<>();
-                    optionMap.put(SpotifyService.OFFSET, m_SongList.size());
+                    optionMap.put(SpotifyService.OFFSET, mSongList.size());
                     optionMap.put(SpotifyService.LIMIT, 100);
 
-                    m_SpotifyService.getPlaylistTracks(m_Owner, m_Id, optionMap, getCallbackPlaylistTracks());
+                    mSpotifyService.getPlaylistTracks(mOwner, mId, optionMap, getCallbackPlaylistTracks());
                 } else {
                     notifyListener();
                 }
@@ -265,7 +256,7 @@ public class SpotifyPlaylist implements ServicePlaylist {
                         }
                     }
 
-                    m_SongList.add(song);
+                    mSongList.add(song);
                 }
 
                 notifyListener();
@@ -306,7 +297,7 @@ public class SpotifyPlaylist implements ServicePlaylist {
                         }
                     }
 
-                    m_SongList.add(song);
+                    mSongList.add(song);
                 }
 
                 notifyListener();
@@ -326,7 +317,7 @@ public class SpotifyPlaylist implements ServicePlaylist {
                 for(Image image : artist.images) {
                     switch(image.width) {
                         case 200:
-                            m_CoverUrl = image.url;
+                            mCoverUrl = image.url;
                             break;
                     }
                 }
@@ -367,7 +358,7 @@ public class SpotifyPlaylist implements ServicePlaylist {
                         }
                     }
 
-                    m_SongList.add(song);
+                    mSongList.add(song);
                 }
 
                 notifyListener();
@@ -381,7 +372,7 @@ public class SpotifyPlaylist implements ServicePlaylist {
     }
 
     private void notifyListener() {
-        for (OnPlaylistUpdateListener listener : mM_OnPlaylistUpdateListenerList) {
+        for (OnPlaylistUpdateListener listener : mOnPlaylistUpdateListenerList) {
             if(listener != null) {
                 listener.onPlaylistUpdate();
             }

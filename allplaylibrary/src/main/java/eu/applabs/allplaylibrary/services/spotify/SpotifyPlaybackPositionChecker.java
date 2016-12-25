@@ -11,51 +11,51 @@ import eu.applabs.allplaylibrary.player.PlayerListener;
 
 public class SpotifyPlaybackPositionChecker implements Runnable {
 
-    private static final String s_Classname = SpotifyPlaybackPositionChecker.class.getSimpleName();
-    private static final long s_SleepTime = 1000;
+    private static final String TAG = SpotifyPlaybackPositionChecker.class.getSimpleName();
+    private static final long SLEEP_TIME = 1000;
 
-    private boolean m_Running = false;
-    private List<PlayerListener> m_IPlayerListenerList = null;
-    private Player m_Player = null;
+    private boolean mIsRunning = false;
+    private List<PlayerListener> mPlayerListenerList;
+    private Player mPlayer;
 
     public SpotifyPlaybackPositionChecker(List<PlayerListener> list, Player player) {
-        m_IPlayerListenerList = list;
-        m_Player = player;
+        mPlayerListenerList = list;
+        mPlayer = player;
     }
 
     public synchronized void updateIPlayerListenerList(List<PlayerListener> list) {
-        m_IPlayerListenerList = list;
+        mPlayerListenerList = list;
     }
 
     public synchronized void updatePlayer(Player player) {
-        m_Player = player;
+        mPlayer = player;
     }
 
     public void setStopFlag() {
-        m_Running = false;
+        mIsRunning = false;
     }
 
     private synchronized Player getPlayer() {
-        return m_Player;
+        return mPlayer;
     }
 
     private synchronized List<PlayerListener> getIPlayerListenerList() {
-        return m_IPlayerListenerList;
+        return mPlayerListenerList;
     }
 
     @Override
     public void run() {
-        Log.d(s_Classname, "run called");
-        m_Running = true;
+        Log.d(TAG, "run called");
+        mIsRunning = true;
 
-        while(m_Running) {
+        while(mIsRunning) {
             try {
-                Thread.sleep(s_SleepTime);
+                Thread.sleep(SLEEP_TIME);
                 update();
             } catch (Exception e) {
                 e.printStackTrace();
-                Log.e(s_Classname, "Exception while running");
-                m_Running = false;
+                Log.e(TAG, "Exception while running");
+                mIsRunning = false;
             }
         }
     }
