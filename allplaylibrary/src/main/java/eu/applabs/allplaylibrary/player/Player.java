@@ -7,14 +7,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
-import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -394,7 +393,7 @@ public class Player implements IPlayerListener, IPlaylistListener, AudioManager.
                 metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, m_Song.getArtist());
 
                 try {
-                    Bitmap bitmap = Picasso.with(m_Activity).load(m_Song.getCoverBig()).get();
+                    Bitmap bitmap = Glide.with(m_Activity).load(m_Song.getCoverBig()).asBitmap().into(800, 800).get();
                     metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
                 } catch (Exception e) {
                     Log.e(CLASSNAME, "Error during cover load");
