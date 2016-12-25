@@ -10,30 +10,30 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
         void onMusicLibraryUpdate();
     }
 
-    private static MusicLibrary s_Instance = null;
+    private static MusicLibrary mMusicLibrary;
 
-    private List<ServiceLibrary> mM_ServiceLibraryList = null;
-    private List<OnMusicLibraryUpdateListener> mM_OnMusicLibraryUpdateListenerList = null;
+    private List<ServiceLibrary> mServiceLibraryList;
+    private List<OnMusicLibraryUpdateListener> mOnMusicLibraryUpdateListenerList;
 
     // Private (Singelton)
     private MusicLibrary() {}
 
     public static synchronized MusicLibrary getInstance() {
-        if(MusicLibrary.s_Instance == null) {
-            MusicLibrary.s_Instance = new MusicLibrary();
-            MusicLibrary.s_Instance.mM_ServiceLibraryList = new ArrayList<>();
-            MusicLibrary.s_Instance.mM_OnMusicLibraryUpdateListenerList = new ArrayList<>();
+        if(MusicLibrary.mMusicLibrary == null) {
+            MusicLibrary.mMusicLibrary = new MusicLibrary();
+            MusicLibrary.mMusicLibrary.mServiceLibraryList = new ArrayList<>();
+            MusicLibrary.mMusicLibrary.mOnMusicLibraryUpdateListenerList = new ArrayList<>();
         }
 
-        return MusicLibrary.s_Instance;
+        return MusicLibrary.mMusicLibrary;
     }
 
     public void clearLibrary() {
-        for(ServiceLibrary library : mM_ServiceLibraryList) {
+        for(ServiceLibrary library : mServiceLibraryList) {
             library.clearLibrary();
         }
 
-        mM_ServiceLibraryList.clear();
+        mServiceLibraryList.clear();
     }
 
     public void search(String query, ServiceLibrary.OnServiceLibrarySearchResult callback) {
@@ -44,29 +44,29 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
     }
 
     public List<ServiceLibrary> getLibraries() {
-        return mM_ServiceLibraryList;
+        return mServiceLibraryList;
     }
 
     public void addMusicLibrary(ServiceLibrary library) {
-        mM_ServiceLibraryList.add(library);
+        mServiceLibraryList.add(library);
         notifyMLU();
     }
 
     public void removeMusicLibrary(ServiceLibrary library) {
-        mM_ServiceLibraryList.remove(library);
+        mServiceLibraryList.remove(library);
         notifyMLU();
     }
 
     public void registerListener(OnMusicLibraryUpdateListener listener) {
-        mM_OnMusicLibraryUpdateListenerList.add(listener);
+        mOnMusicLibraryUpdateListenerList.add(listener);
     }
 
     public void unregisterListener(OnMusicLibraryUpdateListener listener) {
-        mM_OnMusicLibraryUpdateListenerList.remove(listener);
+        mOnMusicLibraryUpdateListenerList.remove(listener);
     }
 
     private void notifyMLU() {
-        for(OnMusicLibraryUpdateListener listener : mM_OnMusicLibraryUpdateListenerList) {
+        for(OnMusicLibraryUpdateListener listener : mOnMusicLibraryUpdateListenerList) {
             if(listener != null) {
                 listener.onMusicLibraryUpdate();
             }
@@ -98,7 +98,7 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
 
             List<ServiceCategory> results = new CopyOnWriteArrayList<>();
 
-            for(ServiceLibrary library : mM_ServiceLibraryList) {
+            for(ServiceLibrary library : mServiceLibraryList) {
                 List<ServiceCategory> list = library.search(m_Query);
 
                 if(list != null && list.size() > 0) {

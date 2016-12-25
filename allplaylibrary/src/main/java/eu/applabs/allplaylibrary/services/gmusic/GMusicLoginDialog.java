@@ -12,19 +12,19 @@ import eu.applabs.allplaylibrary.R;
 
 public class GMusicLoginDialog extends Dialog implements View.OnClickListener {
 
-    private Context m_Context = null;
+    private Context mContext = null;
 
-    public static final String CLASSNAME = Dialog.class.getSimpleName();
-    public static final String ACTION_LOGIN_COMPLETED = CLASSNAME + "::ActionLoginCompleted";
+    public static final String TAG = Dialog.class.getSimpleName();
+    public static final String ACTION_LOGIN_COMPLETED = TAG + "::ActionLoginCompleted";
     public static final String EXTRA_USER = "User";
     public static final String EXTRA_PASSWORD = "Password";
 
-    private EditText m_User = null;
-    private EditText m_Password = null;
+    private EditText mUser = null;
+    private EditText mPassword = null;
 
     public GMusicLoginDialog(Context context) {
         super(context);
-        m_Context = context;
+        mContext = context;
         setContentView(R.layout.dialog_login);
 
         Button btn = (Button) findViewById(R.id.id_dialog_login_btn_ok);
@@ -33,8 +33,8 @@ public class GMusicLoginDialog extends Dialog implements View.OnClickListener {
         btn = (Button) findViewById(R.id.id_dialog_login_btn_cancel);
         btn.setOnClickListener(this);
 
-        m_User = (EditText) findViewById(R.id.id_dialog_login_label_user);
-        m_Password = (EditText) findViewById(R.id.id_dialog_login_label_password);
+        mUser = (EditText) findViewById(R.id.id_dialog_login_label_user);
+        mPassword = (EditText) findViewById(R.id.id_dialog_login_label_password);
     }
 
     @Override
@@ -45,11 +45,11 @@ public class GMusicLoginDialog extends Dialog implements View.OnClickListener {
             Intent intent = new Intent();
             intent.setAction(ACTION_LOGIN_COMPLETED);
             Bundle extras = new Bundle();
-            extras.putString(EXTRA_USER, m_User.getText().toString());
-            extras.putString(EXTRA_PASSWORD, m_Password.getText().toString());
+            extras.putString(EXTRA_USER, mUser.getText().toString());
+            extras.putString(EXTRA_PASSWORD, mPassword.getText().toString());
             intent.putExtras(extras);
 
-            m_Context.sendBroadcast(intent);
+            mContext.sendBroadcast(intent);
             this.dismiss();
             return;
         } else if(id == R.id.id_dialog_login_btn_cancel) {

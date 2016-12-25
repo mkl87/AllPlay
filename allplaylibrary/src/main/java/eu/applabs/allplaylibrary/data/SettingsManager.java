@@ -8,47 +8,47 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class SettingsManager {
-    private static SettingsManager s_Instance = null;
-    private static boolean s_Initialized = false;
 
-    private static final String s_Classname = SettingsManager.class.getSimpleName();
-    private static final String s_ConnectedServices = s_Classname + ".ConnectedServices";
+    private static SettingsManager mSettingsManager;
+    private static boolean mIsInitialized = false;
 
-    private Context m_Context = null;
-    private SharedPreferences m_SharedPreferences = null;
-    private SharedPreferences.Editor m_Editor = null;
+    private static final String TAG = SettingsManager.class.getSimpleName();
+    private static final String KEY_CONNECTED_SERVICES = TAG + ".ConnectedServices";
+
+    private Context mContext;
+    private SharedPreferences mSharedPreferences;
 
     private SettingsManager() {}
 
     public static synchronized SettingsManager getInstance() {
-        if(SettingsManager.s_Instance == null) {
-            SettingsManager.s_Instance = new SettingsManager();
+        if(SettingsManager.mSettingsManager == null) {
+            SettingsManager.mSettingsManager = new SettingsManager();
         }
 
-        return SettingsManager.s_Instance;
+        return SettingsManager.mSettingsManager;
     }
 
     public boolean initialize(Context context) {
-        if(!SettingsManager.s_Initialized && context != null) {
-            m_Context = context;
-            m_SharedPreferences = PreferenceManager.getDefaultSharedPreferences(m_Context);
-            m_Editor = m_SharedPreferences.edit();
-            SettingsManager.s_Initialized = true;
+        if(!SettingsManager.mIsInitialized && context != null) {
+            mContext = context;
+            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+            SettingsManager.mIsInitialized = true;
         }
 
-        return SettingsManager.s_Initialized;
+        return SettingsManager.mIsInitialized;
     }
 
     // Setter
 
     public void setConnectedServices(Set<String> connectedServices) {
-        m_Editor.putStringSet(s_ConnectedServices, connectedServices);
-        m_Editor.apply();
+        SharedPreferences.Editor editor = mSharedPreferences.edit();
+        editor.putStringSet(KEY_CONNECTED_SERVICES, connectedServices);
+        editor.apply();
     }
 
     // Getter
 
     public Set<String> getConnectedServices() {
-        return m_SharedPreferences.getStringSet(s_ConnectedServices, new HashSet<String>());
+        return mSharedPreferences.getStringSet(KEY_CONNECTED_SERVICES, new HashSet<String>());
     }
 }

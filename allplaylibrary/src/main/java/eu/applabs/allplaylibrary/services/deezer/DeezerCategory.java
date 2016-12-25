@@ -8,64 +8,60 @@ import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 
 public class DeezerCategory implements ServiceCategory {
-    private String m_Name = null;
-    private MusicLibrary m_MusicLibrary = null;
-    private List<ServicePlaylist> mM_ServicePlaylistList = null;
-    private List<OnCategoryUpdateListener> mM_OnCategoryUpdateListenerList = null;
+
+    private String mName;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private List<ServicePlaylist> mServicePlaylistList = new CopyOnWriteArrayList<>();
+    private List<OnCategoryUpdateListener> mOnCategoryUpdateListenerList = new CopyOnWriteArrayList<>();
 
     public DeezerCategory(String name) {
-        m_Name = name;
-
-        mM_ServicePlaylistList = new CopyOnWriteArrayList<>();
-        mM_OnCategoryUpdateListenerList = new CopyOnWriteArrayList<>();
-
-        m_MusicLibrary = MusicLibrary.getInstance();
-        registerListener(m_MusicLibrary);
+        mName = name;
+        registerListener(mMusicLibrary);
     }
 
     @Override
     public void clearCategory() {
-        for(ServicePlaylist playlist : mM_ServicePlaylistList) {
+        for(ServicePlaylist playlist : mServicePlaylistList) {
             playlist.clearPlaylist();
         }
 
-        mM_ServicePlaylistList.clear();
+        mServicePlaylistList.clear();
     }
 
     @Override
     public String getCategoryName() {
-        return m_Name;
+        return mName;
     }
 
     @Override
     public void addPlaylist(ServicePlaylist playlist) {
-        mM_ServicePlaylistList.add(playlist);
+        mServicePlaylistList.add(playlist);
         notifyListener();
     }
 
     @Override
     public void removePlaylist(ServicePlaylist playlist) {
-        mM_ServicePlaylistList.remove(playlist);
+        mServicePlaylistList.remove(playlist);
         notifyListener();
     }
 
     @Override
     public List<ServicePlaylist> getPlaylists() {
-        return mM_ServicePlaylistList;
+        return mServicePlaylistList;
     }
 
     @Override
     public void registerListener(OnCategoryUpdateListener listener) {
-        mM_OnCategoryUpdateListenerList.add(listener);
+        mOnCategoryUpdateListenerList.add(listener);
     }
 
     @Override
     public void unregisterListener(OnCategoryUpdateListener listener) {
-        mM_OnCategoryUpdateListenerList.remove(listener);
+        mOnCategoryUpdateListenerList.remove(listener);
     }
 
     private void notifyListener() {
-        for(OnCategoryUpdateListener listener : mM_OnCategoryUpdateListenerList) {
+        for(OnCategoryUpdateListener listener : mOnCategoryUpdateListenerList) {
             listener.onCategoryUpdate();
         }
     }

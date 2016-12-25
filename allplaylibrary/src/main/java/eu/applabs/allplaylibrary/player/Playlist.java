@@ -19,24 +19,16 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
         void onPlaylistUpdate();
     }
 
-    private List<Song> m_PlayList = null;
-    private int m_CurrentIndex = 0;
+    private Activity mActivity;
+    private List<Song> mSongList = new CopyOnWriteArrayList<>();
+    private int mCurrentIndex = 0;
 
-    private List<OnPlaylistUpdateListener> mM_OnPlaylistUpdateListenerList = null;
-
-    private Activity m_Activity = null;
-
-    private MusicLibrary m_MusicLibrary = null;
-    private List<OnCategoryUpdateListener> mM_OnCategoryUpdateListenerList = null;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new ArrayList<>();
+    private List<OnCategoryUpdateListener> mOnCategoryUpdateListenerList = new ArrayList<>();
 
     public Playlist(Activity activity) {
-        mM_OnCategoryUpdateListenerList = new ArrayList<>();
-        m_Activity = activity;
-        m_CurrentIndex = 0;
-        m_PlayList = new CopyOnWriteArrayList<>();
-
-        m_MusicLibrary = MusicLibrary.getInstance();
-        mM_OnPlaylistUpdateListenerList = new ArrayList<>();
+        mActivity = activity;
     }
 
     public void setPlaylist(List<Song> list) {
@@ -45,25 +37,25 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
 
             for (Song song : list) {
                 if(song != null) {
-                    m_PlayList.add(song);
+                    mSongList.add(song);
                 }
             }
         }
 
-        m_MusicLibrary.addMusicLibrary(this);
-        registerListener((OnCategoryUpdateListener) m_MusicLibrary);
+        mMusicLibrary.addMusicLibrary(this);
+        registerListener((OnCategoryUpdateListener) mMusicLibrary);
         notifyListener();
     }
 
     public void remove(Song song) {
-        if(m_PlayList != null) {
-            for(int i = 0; i < m_PlayList.size(); ++i) {
-                if(m_PlayList.get(i) == song) {
-                    if(i <= m_CurrentIndex) {
-                        m_CurrentIndex--;
+        if(mSongList != null) {
+            for(int i = 0; i < mSongList.size(); ++i) {
+                if(mSongList.get(i) == song) {
+                    if(i <= mCurrentIndex) {
+                        mCurrentIndex--;
                     }
 
-                    m_PlayList.remove(song);
+                    mSongList.remove(song);
                     break;
                 }
             }
@@ -73,68 +65,68 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
     }
 
     public void clear() {
-        if(m_PlayList != null) {
-            m_CurrentIndex = 0;
-            m_PlayList.clear();
+        if(mSongList != null) {
+            mCurrentIndex = 0;
+            mSongList.clear();
         }
 
-        m_MusicLibrary.removeMusicLibrary(this);
-        unregisterListener((OnCategoryUpdateListener) m_MusicLibrary);
+        mMusicLibrary.removeMusicLibrary(this);
+        unregisterListener((OnCategoryUpdateListener) mMusicLibrary);
         notifyListener();
     }
 
     public List<Song> getPlaylistAsSongList() {
-        return m_PlayList;
+        return mSongList;
     }
 
     public int getCurrentSongIndex() {
-        return m_CurrentIndex;
+        return mCurrentIndex;
     }
 
     public Song getCurrentSong() {
-        if(m_PlayList != null && m_CurrentIndex >= 0 && m_CurrentIndex < m_PlayList.size()) {
-            return m_PlayList.get(m_CurrentIndex);
+        if(mSongList != null && mCurrentIndex >= 0 && mCurrentIndex < mSongList.size()) {
+            return mSongList.get(mCurrentIndex);
         }
 
         return null;
     }
 
     public Song getPrevSong() {
-        if(m_PlayList != null && m_CurrentIndex > 0) {
-            m_CurrentIndex--;
+        if(mSongList != null && mCurrentIndex > 0) {
+            mCurrentIndex--;
             notifyListener();
 
-            return m_PlayList.get(m_CurrentIndex);
+            return mSongList.get(mCurrentIndex);
         }
 
         return null;
     }
 
     public Song getNextSong() {
-        if(m_PlayList != null && m_PlayList.size() > m_CurrentIndex + 1) {
-            m_CurrentIndex++;
+        if(mSongList != null && mSongList.size() > mCurrentIndex + 1) {
+            mCurrentIndex++;
             notifyListener();
 
-            return m_PlayList.get(m_CurrentIndex);
+            return mSongList.get(mCurrentIndex);
         }
 
         return null;
     }
 
     public void registerListener(OnPlaylistUpdateListener listener) {
-        mM_OnPlaylistUpdateListenerList.add(listener);
+        mOnPlaylistUpdateListenerList.add(listener);
     }
 
     public void unregisterListener(OnPlaylistUpdateListener listener) {
-        mM_OnPlaylistUpdateListenerList.remove(listener);
+        mOnPlaylistUpdateListenerList.remove(listener);
     }
 
     private void notifyListener() {
-        for(OnPlaylistUpdateListener listener : mM_OnPlaylistUpdateListenerList) {
+        for(OnPlaylistUpdateListener listener : mOnPlaylistUpdateListenerList) {
             listener.onPlaylistUpdate();
         }
 
-        for(OnCategoryUpdateListener listener : mM_OnCategoryUpdateListenerList) {
+        for(OnCategoryUpdateListener listener : mOnCategoryUpdateListenerList) {
             listener.onCategoryUpdate();
         }
     }
@@ -178,7 +170,7 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
 
     @Override
     public String getCategoryName() {
-        return m_Activity.getResources().getString(R.string.category_currentplayback);
+        return mActivity.getResources().getString(R.string.category_currentplayback);
     }
 
     @Override
@@ -201,12 +193,12 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
 
     @Override
     public void registerListener(OnCategoryUpdateListener listener) {
-        mM_OnCategoryUpdateListenerList.add(listener);
+        mOnCategoryUpdateListenerList.add(listener);
     }
 
     @Override
     public void unregisterListener(OnCategoryUpdateListener listener) {
-        mM_OnCategoryUpdateListenerList.remove(listener);
+        mOnCategoryUpdateListenerList.remove(listener);
     }
 
     // Playlist methods
@@ -240,8 +232,8 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
 
     @Override
     public int getSize() {
-        if(m_PlayList != null) {
-            return m_PlayList.size();
+        if(mSongList != null) {
+            return mSongList.size();
         }
 
         return 0;
@@ -249,7 +241,7 @@ public class Playlist implements ServiceLibrary, ServiceCategory, ServicePlaylis
 
     @Override
     public List<Song> getPlaylist() {
-        return m_PlayList;
+        return mSongList;
     }
 
     @Override

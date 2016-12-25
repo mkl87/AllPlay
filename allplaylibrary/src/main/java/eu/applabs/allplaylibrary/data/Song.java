@@ -4,143 +4,143 @@ import eu.applabs.allplaylibrary.player.ServicePlayer;
 
 public class Song {
 
-    private ServicePlayer.ServiceType m_ServiceType;
-    private String m_Uri;
-    private String m_Id;
+    private ServicePlayer.ServiceType mServiceType;
+    private String mUri;
+    private String mId;
 
-    private String m_Title;
-    private String m_Artist;
-    private String m_Album;
-    private long m_Duration;
-    private String m_CoverSmall;
-    private String m_CoverBig;
-    private String m_ArtistUri;
-    private String m_ArtistPicture;
+    private String mTitle;
+    private String mArtist;
+    private String mAlbum;
+    private long mDuration;
+    private String mCoverSmall;
+    private String mCoverBig;
+    private String mArtistUri;
+    private String mArtistPicture;
 
-    private int m_Likes;
-    private int m_Dislikes;
+    private int mLikes;
+    private int mDislikes;
 
     public Song() {
-        m_ServiceType = ServicePlayer.ServiceType.Undefined;
-        m_Uri = "";
-        m_Id = "";
-        m_Title = "";
-        m_Artist = "";
-        m_Album = "";
-        m_Duration = 0;
-        m_CoverSmall = "";
-        m_CoverBig = "";
-        m_ArtistUri = "";
-        m_ArtistPicture = "";
-        m_Likes = 0;
-        m_Dislikes = 0;
+        mServiceType = ServicePlayer.ServiceType.Undefined;
+        mUri = "";
+        mId = "";
+        mTitle = "";
+        mArtist = "";
+        mAlbum = "";
+        mDuration = 0;
+        mCoverSmall = "";
+        mCoverBig = "";
+        mArtistUri = "";
+        mArtistPicture = "";
+        mLikes = 0;
+        mDislikes = 0;
     }
 
     // Setter
 
     public void setServiceType(ServicePlayer.ServiceType serviceType) {
-        m_ServiceType = serviceType;
+        mServiceType = serviceType;
     }
 
     public void setUri(String uri) {
-        m_Uri = uri;
+        mUri = uri;
     }
 
     public void setId(String id) {
-        m_Id = id;
+        mId = id;
     }
 
     public void setTitle(String title) {
-        m_Title = title;
+        mTitle = title;
     }
 
     public void setArtist(String artist) {
-        m_Artist = artist;
+        mArtist = artist;
     }
 
     public void setAlbum(String album) {
-        m_Album = album;
+        mAlbum = album;
     }
 
     public void setDuration(long duration) {
-        m_Duration = duration;
+        mDuration = duration;
     }
 
     public void setCoverSmall(String coverSmall) {
-        m_CoverSmall = coverSmall;
+        mCoverSmall = coverSmall;
     }
 
     public void setCoverBig(String coverBig) {
-        m_CoverBig = coverBig;
+        mCoverBig = coverBig;
     }
 
     public void setArtistUri(String artistUri) {
-        m_ArtistUri = artistUri;
+        mArtistUri = artistUri;
     }
 
     public void setArtistPicture(String artistPicture) {
-        m_ArtistPicture = artistPicture;
+        mArtistPicture = artistPicture;
     }
 
     public void setLikes(int likes) {
-        m_Likes = likes;
+        mLikes = likes;
     }
 
     public void setDislikes(int dislikes) {
-        m_Dislikes = dislikes;
+        mDislikes = dislikes;
     }
 
     // Getter
 
     public ServicePlayer.ServiceType getServiceType() {
-        return m_ServiceType;
+        return mServiceType;
     }
 
     public String getUri() {
-        return m_Uri;
+        return mUri;
     }
 
     public String getId() {
-        return m_Id;
+        return mId;
     }
 
     public String getTitle() {
-        return m_Title;
+        return mTitle;
     }
 
     public String getArtist() {
-        return m_Artist;
+        return mArtist;
     }
 
     public String getAlbum() {
-        return m_Album;
+        return mAlbum;
     }
 
     public long getDuration() {
-        return m_Duration;
+        return mDuration;
     }
 
     public String getCoverBig() {
-        return m_CoverBig;
+        return mCoverBig;
     }
 
     public String getCoverSmall() {
-        return m_CoverSmall;
+        return mCoverSmall;
     }
 
     public String getArtistUri() {
-        return m_ArtistUri;
+        return mArtistUri;
     }
 
     public String getArtistPicture() {
-        return m_ArtistPicture;
+        return mArtistPicture;
     }
 
     public int getLikes() {
-        return m_Likes;
+        return mLikes;
     }
 
     public int getDislikes() {
-        return m_Dislikes;
+        return mDislikes;
     }
 }
