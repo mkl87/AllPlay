@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">AllPlay</string>
+
+    <string name="spotify_client_id">2523e8e5dd7f47baa1968796ecd3f723</string>
+    <string name="spotify_redirect_uri">allplay://callback</string>
+    <string-array name="spotify_permissions">
+        <item>user-read-private</item>
+        <item>playlist-read-private</item>
+        <item>user-library-read</item>
+        <item>streaming</item>
+    </string-array>
+
+    <string name="deezer_application_id">155511</string>
+    <string name="deezer_secret_key">6b72c3201ee8787ae7e8abd110d7c399</string>
+
+    <string name="service_gmusic">Google Music</string>
+    <string name="service_spotify">Spotify</string>
+    <string name="service_deezer">Deezer</string>
+
+    <string name="category_currentplayback">Läuft gerade</string>
+    <string name="category_playlists">Playlisten</string>
+    <string name="category_favorites">Beliebt</string>
+    <string name="category_subscribed">Abonniert</string>
+    <string name="category_collaborative">Geteilt</string>
+    <string name="category_albums">Alben</string>
+    <string name="category_songs">Songs</string>
+    <string name="category_artists">Künstler</string>
+    <string name="category_own_charts">Eigene Charts</string>
+    <string name="category_radios">Radiosender</string>
+
+    <string name="dialog_login_label_user">Benutzername</string>
+    <string name="dialog_login_label_password">Passwort</string>
+    <string name="dialog_login_btn_ok">Ok</string>
+    <string name="dialog_login_btn_cancel">Abbrechen</string>
+</resources>

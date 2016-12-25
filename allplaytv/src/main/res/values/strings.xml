@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">AllPlayTV</string>
+
+    <string name="dialog_loading">Lade, bitte warten...</string>
+
+    <string name="mainactivity_header_settings">Einstellungen</string>
+
+    <string name="mainactivity_action_manageaccounts">Accounts verwalten</string>
+
+    <string name="manageaccountsactivity_category_connectedservices">Verbundene Dienste</string>
+    <string name="manageaccountsactivity_category_availableservices">Verfügbare Dienste</string>
+    <string name="manageaccountsactivity_toast_loginerror">Fehler beim Verbindungsaufbau</string>
+    <string name="manageaccountsactivity_toast_logouterror">Fehler beim Verbindungsabbau</string>
+    <string name="manageaccountsactivity_toast_commingsoon">Wird bald unterstützt...</string>
+    <string name="manageaccountsactivity_disconnectdialog_title">Information</string>
+    <string name="manageaccountsactivity_disconnectdialog_text">Möchtest du die Verbindung wirklich trennen?</string>
+    <string name="manageaccountsactivity_disconnectdialog_positive">Ja</string>
+    <string name="manageaccountsactivity_disconnectdialog_negative">Nein</string>
+</resources>

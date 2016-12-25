@@ -1,0 +1,65 @@
+apply plugin: 'com.android.library'
+
+def supportLibraryVersion = "25.1.0"
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+
+    compileOptions {
+        encoding "UTF-8"
+    }
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0.0"
+
+        vectorDrawables.useSupportLibrary = true
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        config {
+            keyAlias 'android'
+            keyPassword 'android'
+            storeFile file('../develop.jks')
+            storePassword 'android'
+        }
+    }
+
+    buildTypes {
+        release {
+            zipAlignEnabled true
+            minifyEnabled false
+            signingConfig signingConfigs.config
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            signingConfig signingConfigs.config
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    //compile 'com.squareup.picasso:picasso:2.5.2'
+    compile "com.android.support:appcompat-v7:${supportLibraryVersion}"
+    // Spotify
+    compile 'com.github.kaaes:spotify-web-api-android:0.4.1'
+    compile project(':spotify-android-auth-1.0.0')
+    compile project(':spotify-player-24-noconnect-2.20b')
+    // Deezer
+    compile project(':deezer-sdk-0.11.0')
+}
