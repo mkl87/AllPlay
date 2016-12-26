@@ -4,19 +4,19 @@ import eu.applabs.allplaytv.gui.PlaylistSearchFragment;
 
 public class SearchRunnable implements Runnable {
 
-    private PlaylistSearchFragment m_Playlist_SearchFragment = null;
-    private String m_Query = null;
+    private PlaylistSearchFragment mPlaylistSearchFragment;
+    private String mQuery;
 
     public SearchRunnable(PlaylistSearchFragment fragment) {
-        m_Playlist_SearchFragment = fragment;
+        mPlaylistSearchFragment = fragment;
     }
 
     public void setQuery(String query) {
-        m_Query = query;
+        mQuery = query;
     }
 
     @Override
     public void run() {
-        m_Playlist_SearchFragment.showResultsForQuery(m_Query);
+        mPlaylistSearchFragment.showResultsForQuery(mQuery);
     }
 }

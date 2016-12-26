@@ -33,10 +33,10 @@ import eu.applabs.allplaytv.presenter.ServicePresenter;
 
 public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, PlayerListener {
 
-    private FragmentManager m_FragmentManager = null;
-    private BrowseFragment m_BrowseFragment = null;
-    private SettingsManager m_SettingsManager = null;
-    private ArrayObjectAdapter m_ManageAccountAdapter = null;
+    private FragmentManager mFragmentManager;
+    private BrowseFragment mBrowseFragment;
+    private SettingsManager mSettingsManager;
+    private ArrayObjectAdapter mManageAccountAdapter;
 
     private Player m_Player = null;
 
@@ -51,22 +51,22 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
         m_ConnectedServices = new ArrayList<>();
         m_AvailableServices = new ArrayList<>();
 
-        m_SettingsManager = SettingsManager.getInstance();
-        m_SettingsManager.initialize(this);
+        mSettingsManager = SettingsManager.getInstance();
+        mSettingsManager.initialize(this);
 
-        m_FragmentManager = getFragmentManager();
-        m_BrowseFragment = (BrowseFragment) m_FragmentManager.findFragmentById(R.id.id_frag_ManageAccounts);
+        mFragmentManager = getFragmentManager();
+        mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_ManageAccounts);
 
-        m_BrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-        m_BrowseFragment.setTitle("AllPlay");
-        m_BrowseFragment.setOnItemViewClickedListener(this);
+        mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+        mBrowseFragment.setTitle("AllPlay");
+        mBrowseFragment.setOnItemViewClickedListener(this);
 
         BackgroundManager backgroundManager = BackgroundManager.getInstance(this);
         backgroundManager.attach(this.getWindow());
         backgroundManager.setDrawable(getResources().getDrawable(R.drawable.background, null));
 
-        m_ManageAccountAdapter = new ArrayObjectAdapter(new ListRowPresenter());
-        m_BrowseFragment.setAdapter(m_ManageAccountAdapter);
+        mManageAccountAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        mBrowseFragment.setAdapter(mManageAccountAdapter);
 
         m_Player = Player.getInstance();
         m_Player.registerListener(this);
@@ -80,9 +80,9 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
         m_Player.unregisterListener(this);
 
-        m_FragmentManager = null;
-        m_BrowseFragment = null;
-        m_ManageAccountAdapter = null;
+        mFragmentManager = null;
+        mBrowseFragment = null;
+        mManageAccountAdapter = null;
 
         Glide.get(this).clearMemory();
     }
@@ -101,22 +101,22 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
             new Runnable() {
                 @Override
                 public void run() {
-                    m_ManageAccountAdapter.clear();
+                    mManageAccountAdapter.clear();
                     m_ConnectedServices.clear();
                     m_AvailableServices.clear();
 
                     // Connected services
 
                     ArrayObjectAdapter connectedServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
-                    Set<String> connectedServices = m_SettingsManager.getConnectedServices();
-                    for(String s : m_SettingsManager.getConnectedServices()) {
+                    Set<String> connectedServices = mSettingsManager.getConnectedServices();
+                    for(String s : mSettingsManager.getConnectedServices()) {
                         ServicePlayer.ServiceType type = ServicePlayer.ServiceType.values()[Integer.valueOf(s)];
                         connectedServiceAdapter.add(type);
                         m_ConnectedServices.add(type);
                     }
 
                     HeaderItem connectedServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_connectedservices));
-                    m_ManageAccountAdapter.add(new ListRow(connectedServicesHeader, connectedServiceAdapter));
+                    mManageAccountAdapter.add(new ListRow(connectedServicesHeader, connectedServiceAdapter));
 
                     // Available services
 
@@ -138,7 +138,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                     }
 
                     HeaderItem availableServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_availableservices));
-                    m_ManageAccountAdapter.add(new ListRow(availableServicesHeader, availableServiceAdapter));
+                    mManageAccountAdapter.add(new ListRow(availableServicesHeader, availableServiceAdapter));
                 }
             }
         );

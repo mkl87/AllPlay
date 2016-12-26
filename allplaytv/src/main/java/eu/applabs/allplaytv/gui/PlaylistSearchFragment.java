@@ -34,14 +34,14 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
 
     private static final int SEARCH_DELAY_MS = 300;
 
-    private ProgressDialog m_LoadingDialog = null;
-    private ArrayObjectAdapter m_RowAdapter = null;
-    private Handler m_Handler = null;
-    private SearchRunnable m_DelayedLoad = null;
-    private MusicLibrary m_MusicLibrary = null;
-    private Player m_Player = null;
-    private ArrayList<ServicePlaylist> m_PlaylistList = null;
-    private SearchActivity m_SearchActivity = null;
+    private ProgressDialog mLoadingDialog;
+    private ArrayObjectAdapter mRowAdapter;
+    private Handler mHandler;
+    private SearchRunnable mDelayedLoad;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private Player mPlayer = Player.getInstance();
+    private ArrayList<ServicePlaylist> mPlaylistList = new ArrayList<>();
+    private SearchActivity mSearchActivity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,27 +49,22 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
 
         setOnItemViewClickedListener(this);
 
-        m_PlaylistList = new ArrayList<>();
-
-        m_Player = Player.getInstance();
-        m_MusicLibrary = MusicLibrary.getInstance();
-
-        if(m_MusicLibrary != null) {
-            for(ServiceLibrary library : m_MusicLibrary.getLibraries()) {
+        if(mMusicLibrary != null) {
+            for(ServiceLibrary library : mMusicLibrary.getLibraries()) {
                 for(ServiceCategory category : library.getCategories()) {
                     for(ServicePlaylist playlist : category.getPlaylists()) {
-                        m_PlaylistList.add(playlist);
+                        mPlaylistList.add(playlist);
                     }
                 }
             }
         }
 
-        m_RowAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        mRowAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
         setSearchResultProvider(this);
         setOnItemViewClickedListener(this);
-        m_Handler = new Handler();
-        m_DelayedLoad = new SearchRunnable(this);
+        mHandler = new Handler();
+        mDelayedLoad = new SearchRunnable(this);
     }
 
     @Override
@@ -80,7 +75,7 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
 
     @Override
     public ObjectAdapter getResultsAdapter() {
-        return m_RowAdapter;
+        return mRowAdapter;
     }
 
     @Override
@@ -91,11 +86,11 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
     @Override
     public boolean onQueryTextSubmit(String query) {
         if(query != null && query.compareTo("") != 0) {
-            m_RowAdapter.clear();
+            mRowAdapter.clear();
 
-            m_DelayedLoad.setQuery(query);
-            m_Handler.removeCallbacks(m_DelayedLoad);
-            m_Handler.postDelayed(m_DelayedLoad, SEARCH_DELAY_MS);
+            mDelayedLoad.setQuery(query);
+            mHandler.removeCallbacks(mDelayedLoad);
+            mHandler.postDelayed(mDelayedLoad, SEARCH_DELAY_MS);
 
             return true;
         }
@@ -106,33 +101,33 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if(item instanceof ServicePlaylist) {
-            if(m_SearchActivity != null) {
+            if(mSearchActivity != null) {
                 ServicePlaylist imusiclibraryplaylist = (ServicePlaylist) item;
-                Playlist playlist = m_Player.getPlaylist();
+                Playlist playlist = mPlayer.getPlaylist();
                 playlist.clear();
                 playlist.setPlaylist(imusiclibraryplaylist.getPlaylist());
 
-                m_Player.play();
+                mPlayer.play();
 
                 // Start playlist
-                Intent intent = new Intent(m_SearchActivity, PlaylistActivity.class);
+                Intent intent = new Intent(mSearchActivity, PlaylistActivity.class);
                 startActivity(intent);
             }
         }
     }
 
     public void setSearchActivity(SearchActivity activity) {
-        m_SearchActivity = activity;
+        mSearchActivity = activity;
     }
 
     public void showResultsForQuery(String query) {
-        m_LoadingDialog = ProgressDialog.show(getActivity(), "", getResources().getString(R.string.dialog_loading), true);
-        m_MusicLibrary.search(query, this);
+        mLoadingDialog = ProgressDialog.show(getActivity(), "", getResources().getString(R.string.dialog_loading), true);
+        mMusicLibrary.search(query, this);
     }
 
     public void clear() {
         Glide.get(getActivity()).clearMemory();
-        m_RowAdapter.clear();
+        mRowAdapter.clear();
     }
 
     @Override
@@ -143,7 +138,7 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
             new Runnable() {
                 @Override
                 public void run() {
-                    m_LoadingDialog.dismiss();
+                    mLoadingDialog.dismiss();
 
                     if(result != null && result.size() > 0) {
                         for(ServiceCategory category : result) {
@@ -154,7 +149,7 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
                             }
 
                             HeaderItem header = new HeaderItem(category.getCategoryName());
-                            m_RowAdapter.add(new ListRow(header, playlistAdapter));
+                            mRowAdapter.add(new ListRow(header, playlistAdapter));
                         }
                     }
                 }

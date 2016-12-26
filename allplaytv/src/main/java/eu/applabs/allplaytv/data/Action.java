@@ -4,35 +4,36 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
 public class Action {
-    private String m_Name = null;
-    private Drawable m_Icon = null;
-    private Intent m_Intent = null;
+
+    private String mName;
+    private Drawable mIcon;
+    private Intent mIntent;
 
     public Action() {
-        m_Name = "";
+        mName = "";
     }
 
     public void setName(String name) {
-        m_Name = name;
+        mName = name;
     }
 
     public void setIcon(Drawable icon) {
-        m_Icon = icon;
+        mIcon = icon;
     }
 
     public void setIntent(Intent intent) {
-        m_Intent = intent;
+        mIntent = intent;
     }
 
     public String getName() {
-        return m_Name;
+        return mName;
     }
 
     public Drawable getIcon() {
-        return m_Icon;
+        return mIcon;
     }
 
     public Intent getIntent() {
-        return m_Intent;
+        return mIntent;
     }
 }

@@ -12,17 +12,17 @@ import eu.applabs.allplaytv.R;
 
 public class SearchActivity extends Activity {
 
-    private FragmentManager m_FragmentManager = null;
-    private PlaylistSearchFragment m_PlaylistSearchFragment = null;
+    private FragmentManager mFragmentManager = null;
+    private PlaylistSearchFragment mPlaylistSearchFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        m_FragmentManager = getFragmentManager();
-        m_PlaylistSearchFragment = (PlaylistSearchFragment) m_FragmentManager.findFragmentById(R.id.id_frag_SearchActivity);
-        m_PlaylistSearchFragment.setSearchActivity(this);
+        mFragmentManager = getFragmentManager();
+        mPlaylistSearchFragment = (PlaylistSearchFragment) mFragmentManager.findFragmentById(R.id.id_frag_SearchActivity);
+        mPlaylistSearchFragment.setSearchActivity(this);
 
         BackgroundManager backgroundManager = BackgroundManager.getInstance(this);
         backgroundManager.attach(this.getWindow());
@@ -40,8 +40,8 @@ public class SearchActivity extends Activity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_SEARCH:
-                m_PlaylistSearchFragment.clear();
-                m_PlaylistSearchFragment.startRecognition();
+                mPlaylistSearchFragment.clear();
+                mPlaylistSearchFragment.startRecognition();
                 return true;
             default:
                 return super.onKeyUp(keyCode, event);

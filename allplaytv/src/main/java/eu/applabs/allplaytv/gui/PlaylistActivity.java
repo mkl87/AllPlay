@@ -22,52 +22,52 @@ import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
 public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpdateListener, PlayerListener, PlaylistAdapter.OnPositionSelectedListener {
 
-    private Player m_Player = null;
-    private Playlist m_Playlist = null;
+    private Player mPlayer;
+    private Playlist mPlaylist;
 
-    private ImageView m_Background = null;
-    private RecyclerView m_RecyclerView = null;
-    private LinearLayoutManager m_LinearLayoutManager = null;
-    private PlaylistAdapter m_PlaylistAdapter = null;
-    private ProgressBar m_ProgressBar = null;
+    private ImageView mBackground;
+    private RecyclerView mRecyclerView;
+    private LinearLayoutManager mLinearLayoutManager;
+    private PlaylistAdapter mPlaylistAdapter;
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_showplaylist);
 
-        m_Background = (ImageView) findViewById(R.id.id_iv_ShowPlaylistActivity_Background);
-        m_ProgressBar = (ProgressBar) findViewById(R.id.id_pb_ShowPlaylistActivity_ProgressBar);
+        mBackground = (ImageView) findViewById(R.id.id_iv_ShowPlaylistActivity_Background);
+        mProgressBar = (ProgressBar) findViewById(R.id.id_pb_ShowPlaylistActivity_ProgressBar);
 
-        m_Player = Player.getInstance();
-        m_Player.registerListener(this);
-        m_Playlist = m_Player.getPlaylist();
-        m_Playlist.registerListener(this);
+        mPlayer = Player.getInstance();
+        mPlayer.registerListener(this);
+        mPlaylist = mPlayer.getPlaylist();
+        mPlaylist.registerListener(this);
 
-        m_RecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
-        m_LinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        m_LinearLayoutManager.scrollToPositionWithOffset(m_Playlist.getCurrentSongIndex(), 640);
+        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        mLinearLayoutManager.scrollToPositionWithOffset(mPlaylist.getCurrentSongIndex(), 640);
 
-        m_RecyclerView.setLayoutManager(m_LinearLayoutManager);
+        mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
-        m_PlaylistAdapter = new PlaylistAdapter(this, m_Background, Player.getInstance().getPlaylist().getPlaylistAsSongList(), this);
-        m_RecyclerView.setAdapter(m_PlaylistAdapter);
+        mPlaylistAdapter = new PlaylistAdapter(this, mBackground, Player.getInstance().getPlaylist().getPlaylistAsSongList(), this);
+        mRecyclerView.setAdapter(mPlaylistAdapter);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
-        m_Player.unregisterListener(this);
-        m_Playlist.unregisterListener(this);
+        mPlayer.unregisterListener(this);
+        mPlaylist.unregisterListener(this);
 
-        m_PlaylistAdapter.clearPlaylistAdapter();
-        m_PlaylistAdapter = null;
+        mPlaylistAdapter.clearPlaylistAdapter();
+        mPlaylistAdapter = null;
 
-        m_Background = null;
-        m_ProgressBar = null;
-        m_LinearLayoutManager = null;
-        m_RecyclerView = null;
+        mBackground = null;
+        mProgressBar = null;
+        mLinearLayoutManager = null;
+        mRecyclerView = null;
 
         Glide.get(this).clearMemory();
     }
@@ -76,26 +76,26 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                if (m_Player != null) {
-                    ServicePlayer.State state = m_Player.getPlayerState();
+                if (mPlayer != null) {
+                    ServicePlayer.State state = mPlayer.getPlayerState();
 
                     if(state == ServicePlayer.State.Playing) {
-                        m_Player.pause();
+                        mPlayer.pause();
                     } else if(state == ServicePlayer.State.Paused) {
-                        m_Player.resume();
+                        mPlayer.resume();
                     }
                 }
 
                 return true;
             case KeyEvent.KEYCODE_DPAD_RIGHT:
-                if(m_Player != null) {
-                    m_Player.next();
+                if(mPlayer != null) {
+                    mPlayer.next();
                 }
 
                 return true;
             case KeyEvent.KEYCODE_DPAD_LEFT:
-                if(m_Player != null) {
-                    m_Player.prev();
+                if(mPlayer != null) {
+                    mPlayer.prev();
                 }
 
                 return true;
@@ -109,8 +109,8 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                m_PlaylistAdapter.updatePlaylist(m_Playlist.getPlaylistAsSongList());
-                m_LinearLayoutManager.scrollToPositionWithOffset(m_Playlist.getCurrentSongIndex(), 640);
+                mPlaylistAdapter.updatePlaylist(mPlaylist.getPlaylistAsSongList());
+                mLinearLayoutManager.scrollToPositionWithOffset(mPlaylist.getCurrentSongIndex(), 640);
             }
         });
     }
@@ -150,7 +150,7 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ObjectAnimator animator = ObjectAnimator.ofInt(m_ProgressBar, "progress", position);
+                ObjectAnimator animator = ObjectAnimator.ofInt(mProgressBar, "progress", position);
                 animator.setDuration(500); // 0.5 Sec
                 animator.setInterpolator(new DecelerateInterpolator());
                 animator.start();
@@ -160,13 +160,13 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
 
     @Override
     public void onPositionSelected(int position) {
-        while (m_Player.getPlaylist().getCurrentSongIndex() != position) {
-            int currentPosition = m_Player.getPlaylist().getCurrentSongIndex();
+        while (mPlayer.getPlaylist().getCurrentSongIndex() != position) {
+            int currentPosition = mPlayer.getPlaylist().getCurrentSongIndex();
 
             if(currentPosition > position) {
-                m_Player.prev();
+                mPlayer.prev();
             } else {
-                m_Player.next();
+                mPlayer.next();
             }
         }
     }

@@ -35,52 +35,52 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
                                                             OnItemViewClickedListener,
                                                             View.OnClickListener {
 
-    private Activity m_Activity = null;
-    private Player m_Player = null;
-    private MusicLibrary m_MusicLibrary = null;
+    private Activity mActivity;
+    private Player mPlayer;
+    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
 
-    private FragmentManager m_FragmentManager = null;
-    private BrowseFragment m_BrowseFragment = null;
+    private FragmentManager mFragmentManager;
+    private BrowseFragment mBrowseFragment;
 
-    private ArrayObjectAdapter m_MusicLibraryAdapter = null;
-    private ArrayObjectAdapter m_ActionAdapter = null;
+    private ArrayObjectAdapter mMusicLibraryAdapter;
+    private ArrayObjectAdapter mActionAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        m_Activity = this;
+        mActivity = this;
 
-        m_FragmentManager = getFragmentManager();
-        m_BrowseFragment = (BrowseFragment) m_FragmentManager.findFragmentById(R.id.id_frag_MainActivity);
+        mFragmentManager = getFragmentManager();
+        mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_MainActivity);
 
-        m_BrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-        m_BrowseFragment.setTitle("AllPlay");
-        m_BrowseFragment.setOnItemViewClickedListener(this);
-        m_BrowseFragment.setOnSearchClickedListener(this);
-        m_BrowseFragment.setSearchAffordanceColor(getResources().getColor(R.color.accent));
+        mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+        mBrowseFragment.setTitle("AllPlay");
+        mBrowseFragment.setOnItemViewClickedListener(this);
+        mBrowseFragment.setOnSearchClickedListener(this);
+        mBrowseFragment.setSearchAffordanceColor(getResources().getColor(R.color.accent));
 
         BackgroundManager backgroundManager = BackgroundManager.getInstance(this);
         backgroundManager.attach(this.getWindow());
         backgroundManager.setDrawable(getResources().getDrawable(R.drawable.background, null));
 
-        m_MusicLibraryAdapter = new ArrayObjectAdapter(new ListRowPresenter());
-        m_BrowseFragment.setAdapter(m_MusicLibraryAdapter);
+        mMusicLibraryAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+        mBrowseFragment.setAdapter(mMusicLibraryAdapter);
         initializeActionAdapter();
 
-        m_MusicLibrary = MusicLibrary.getInstance();
-        m_MusicLibrary.registerListener(this);
+        mMusicLibrary = MusicLibrary.getInstance();
+        mMusicLibrary.registerListener(this);
 
-        m_Player = Player.getInstance();
-        m_Player.initialize(this);
+        mPlayer = Player.getInstance();
+        mPlayer.initialize(this);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(!m_Player.checkActivityResult(requestCode, resultCode, data)) {
+        if(!mPlayer.checkActivityResult(requestCode, resultCode, data)) {
             // Seems to be a result for another request
         }
     }
@@ -89,13 +89,13 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     protected void onDestroy() {
         super.onDestroy();
 
-        if(m_MusicLibrary != null) {
-            m_MusicLibrary.unregisterListener(this);
-            m_MusicLibrary.clearLibrary();
+        if(mMusicLibrary != null) {
+            mMusicLibrary.unregisterListener(this);
+            mMusicLibrary.clearLibrary();
         }
 
-        if(m_Player != null) {
-            m_Player.clearPlayer();
+        if(mPlayer != null) {
+            mPlayer.clearPlayer();
         }
 
         Glide.get(this).clearMemory();
@@ -106,9 +106,9 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                m_MusicLibraryAdapter.clear();
+                mMusicLibraryAdapter.clear();
 
-                for (ServiceLibrary library : m_MusicLibrary.getLibraries()) {
+                for (ServiceLibrary library : mMusicLibrary.getLibraries()) {
                     if (library != null) {
                         for (ServiceCategory category : library.getCategories()) {
                             if (category != null) {
@@ -122,10 +122,10 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
 
                                 if (category.getCategoryName().compareTo(getResources().getString(R.string.category_currentplayback)) == 0) {
                                     HeaderItem header = new HeaderItem(category.getCategoryName());
-                                    m_MusicLibraryAdapter.add(0, new ListRow(header, categoryAdapter));
+                                    mMusicLibraryAdapter.add(0, new ListRow(header, categoryAdapter));
                                 } else {
                                     HeaderItem header = new HeaderItem(category.getCategoryName());
-                                    m_MusicLibraryAdapter.add(new ListRow(header, categoryAdapter));
+                                    mMusicLibraryAdapter.add(new ListRow(header, categoryAdapter));
                                 }
                             }
                         }
@@ -141,13 +141,13 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                if (m_Player != null) {
-                    ServicePlayer.State state = m_Player.getPlayerState();
+                if (mPlayer != null) {
+                    ServicePlayer.State state = mPlayer.getPlayerState();
 
                     if(state == ServicePlayer.State.Playing) {
-                        m_Player.pause();
+                        mPlayer.pause();
                     } else if(state == ServicePlayer.State.Paused) {
-                        m_Player.resume();
+                        mPlayer.resume();
                     }
                 }
 
@@ -172,11 +172,11 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
                 return;
             }
 
-            Playlist playlist = m_Player.getPlaylist();
+            Playlist playlist = mPlayer.getPlaylist();
             playlist.clear();
             playlist.setPlaylist(imusiclibraryplaylist.getPlaylist());
 
-            m_Player.play();
+            mPlayer.play();
 
             Intent intent = new Intent(this, PlaylistActivity.class);
             startActivity(intent);
@@ -193,26 +193,26 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     }
 
     private void initializeActionAdapter() {
-        m_ActionAdapter = new ArrayObjectAdapter(new ActionPresenter());
+        mActionAdapter = new ArrayObjectAdapter(new ActionPresenter());
 
         Action manageAccounts = new Action();
         manageAccounts.setName(getResources().getString(R.string.mainactivity_action_manageaccounts));
         manageAccounts.setIcon(getResources().getDrawable(R.drawable.banner, null));
-        manageAccounts.setIntent(new Intent(m_Activity, ManageAccountsActivity.class));
+        manageAccounts.setIntent(new Intent(mActivity, ManageAccountsActivity.class));
 
         Action voiceRecord = new Action();
         voiceRecord.setName("VoiceRecord");
         voiceRecord.setIcon(getResources().getDrawable(R.drawable.banner, null));
-        voiceRecord.setIntent(new Intent(m_Activity, SearchActivity.class));
+        voiceRecord.setIntent(new Intent(mActivity, SearchActivity.class));
 
-        m_ActionAdapter.add(manageAccounts);
-        m_ActionAdapter.add(voiceRecord);
+        mActionAdapter.add(manageAccounts);
+        mActionAdapter.add(voiceRecord);
 
         addActionAdapter();
     }
 
     private void addActionAdapter() {
         HeaderItem header = new HeaderItem(getResources().getString(R.string.mainactivity_header_settings));
-        m_MusicLibraryAdapter.add(new ListRow(header, m_ActionAdapter));
+        mMusicLibraryAdapter.add(new ListRow(header, mActionAdapter));
     }
 }

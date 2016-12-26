@@ -3,6 +3,7 @@ package eu.applabs.allplaytv.presenter;
 import android.graphics.drawable.Drawable;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
+import android.support.v4.content.ContextCompat;
 import android.view.ViewGroup;
 
 
@@ -13,21 +14,21 @@ import eu.applabs.allplaytv.R;
 
 public class ServicePresenter extends Presenter {
 
-    private static int s_CardWidth = 400;
-    private static int s_CardHeight = 400;
-    private static int s_SelectedBackground = 0;
-    private static int s_DefaultBackground = 0;
+    private static int CARD_WIDTH = 400;
+    private static int CARD_HEIGHT = 400;
+    private static int SELECTED_BACKGROUND = 0;
+    private static int DEFAULT_BACKGROUND = 0;
 
-    private Drawable m_DefaultCardImage = null;
+    private Drawable mDefaultCardImage;
 
-    private ViewGroup m_Parent = null;
+    private ViewGroup mParent;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
-        m_Parent = parent;
-        m_DefaultCardImage = parent.getResources().getDrawable(R.drawable.ic_action_person, null);
-        s_SelectedBackground = parent.getResources().getColor(R.color.accent);
-        s_DefaultBackground = parent.getResources().getColor(R.color.primary);
+        mParent = parent;
+        mDefaultCardImage = ContextCompat.getDrawable(mParent.getContext(), R.drawable.ic_action_person);
+        SELECTED_BACKGROUND = ContextCompat.getColor(mParent.getContext(), R.color.accent);
+        DEFAULT_BACKGROUND = ContextCompat.getColor(mParent.getContext(), R.color.primary);
 
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
@@ -46,9 +47,9 @@ public class ServicePresenter extends Presenter {
 
     private static void updateCardBackgroundColor(ImageCardView view, boolean selected) {
         if(selected) {
-            view.setInfoAreaBackgroundColor(s_SelectedBackground);
+            view.setInfoAreaBackgroundColor(SELECTED_BACKGROUND);
         } else {
-            view.setInfoAreaBackgroundColor(s_DefaultBackground);
+            view.setInfoAreaBackgroundColor(DEFAULT_BACKGROUND);
         }
     }
 
@@ -59,19 +60,19 @@ public class ServicePresenter extends Presenter {
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         switch(type) {
             case GoogleMusic:
-                cardView.setTitleText(m_Parent.getResources().getString(R.string.service_gmusic));
-                cardView.setMainImage(m_Parent.getResources().getDrawable(R.drawable.gmusic, null));
+                cardView.setTitleText(mParent.getResources().getString(R.string.service_gmusic));
+                cardView.setMainImage(mParent.getResources().getDrawable(R.drawable.gmusic, null));
                 break;
             case Spotify:
-                cardView.setTitleText(m_Parent.getResources().getString(R.string.service_spotify));
-                cardView.setMainImage(m_Parent.getResources().getDrawable(R.drawable.spotify, null));
+                cardView.setTitleText(mParent.getResources().getString(R.string.service_spotify));
+                cardView.setMainImage(mParent.getResources().getDrawable(R.drawable.spotify, null));
                 break;
             case Deezer:
-                cardView.setTitleText(m_Parent.getResources().getString(R.string.service_deezer));
-                cardView.setMainImage(m_Parent.getResources().getDrawable(R.drawable.deezer, null));
+                cardView.setTitleText(mParent.getResources().getString(R.string.service_deezer));
+                cardView.setMainImage(mParent.getResources().getDrawable(R.drawable.deezer, null));
                 break;
         }
-        cardView.setMainImageDimensions(s_CardWidth, s_CardHeight);
+        cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);
     }
 
     @Override

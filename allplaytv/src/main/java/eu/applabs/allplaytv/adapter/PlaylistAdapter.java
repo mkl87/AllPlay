@@ -25,29 +25,27 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         void onPositionSelected(int position);
     }
 
-    private Playlist m_PlayerPlaylist = null;
-    private Context m_Context = null;
-    private ImageView m_Background = null;
-    private List<Song> m_SongList = null;
+    private Playlist mPlayerPlaylist = Player.getInstance().getPlaylist();
+    private Context mContext;
+    private ImageView mBackground;
+    private List<Song> mSongList;
     private OnPositionSelectedListener mOnPositionSelectedListener;
 
     public PlaylistAdapter(Context context, ImageView background, List<Song> list, OnPositionSelectedListener onPositionSelectedListener) {
-        m_Context = context;
-        m_Background = background;
-        m_SongList = list;
+        mContext = context;
+        mBackground = background;
+        mSongList = list;
         mOnPositionSelectedListener = onPositionSelectedListener;
-
-        m_PlayerPlaylist = Player.getInstance().getPlaylist();
     }
 
     public void clearPlaylistAdapter() {
-        m_PlayerPlaylist = null;
-        m_SongList = null;
+        mPlayerPlaylist = null;
+        mSongList = null;
 
-        Glide.clear(m_Background);
-        m_Background = null;
+        Glide.clear(mBackground);
+        mBackground = null;
 
-        Glide.get(m_Context).clearMemory();
+        Glide.get(mContext).clearMemory();
     }
 
     @Override
@@ -60,33 +58,33 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if(position == m_PlayerPlaylist.getCurrentSongIndex()) {
+        if(position == mPlayerPlaylist.getCurrentSongIndex()) {
             holder.m_CardView.bringToFront();
-            holder.m_LinearLayout.setBackgroundColor(m_Context.getResources().getColor(R.color.accent));
+            holder.m_LinearLayout.setBackgroundColor(mContext.getResources().getColor(R.color.accent));
 
             // Clear the old image
-            Glide.clear(m_Background);
-            Glide.get(m_Context).clearMemory();
+            Glide.clear(mBackground);
+            Glide.get(mContext).clearMemory();
 
             // Set the new image
-            Glide.with(m_Context)
-                    .load(m_PlayerPlaylist.getPlaylistAsSongList().get(m_PlayerPlaylist.getCurrentSongIndex()).getCoverSmall())
+            Glide.with(mContext)
+                    .load(mPlayerPlaylist.getPlaylistAsSongList().get(mPlayerPlaylist.getCurrentSongIndex()).getCoverSmall())
                     .centerCrop()
-                    .error(m_Context.getDrawable(R.drawable.nocover))
-                    .into(m_Background);
+                    .error(mContext.getDrawable(R.drawable.nocover))
+                    .into(mBackground);
 
         } else {
-            holder.m_LinearLayout.setBackgroundColor(m_Context.getResources().getColor(R.color.background));
+            holder.m_LinearLayout.setBackgroundColor(mContext.getResources().getColor(R.color.background));
         }
 
-        holder.m_Title.setText(m_SongList.get(position).getTitle());
-        holder.m_Artist.setText(m_SongList.get(position).getArtist());
+        holder.m_Title.setText(mSongList.get(position).getTitle());
+        holder.m_Artist.setText(mSongList.get(position).getArtist());
         holder.mOnPositionSelectedListener = mOnPositionSelectedListener;
 
-        Glide.with(m_Context)
-                .load(m_SongList.get(position).getCoverSmall())
+        Glide.with(mContext)
+                .load(mSongList.get(position).getCoverSmall())
                 .centerCrop()
-                .error(m_Context.getResources().getDrawable(R.drawable.nocover, null))
+                .error(mContext.getResources().getDrawable(R.drawable.nocover, null))
                 .into(holder.m_ImageView);
     }
 
@@ -95,20 +93,20 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         super.onViewDetachedFromWindow(holder);
 
         Glide.clear(holder.m_ImageView);
-        Glide.get(m_Context).clearMemory();
+        Glide.get(mContext).clearMemory();
     }
 
     @Override
     public int getItemCount() {
-        if(m_SongList != null) {
-            return m_SongList.size();
+        if(mSongList != null) {
+            return mSongList.size();
         }
 
         return 0;
     }
 
     public void updatePlaylist(List<Song> list) {
-        m_SongList = list;
+        mSongList = list;
         notifyDataSetChanged();
     }
 
