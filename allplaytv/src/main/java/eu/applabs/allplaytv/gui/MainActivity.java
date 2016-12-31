@@ -12,6 +12,7 @@ import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
+import android.support.v17.leanback.widget.PresenterSelector;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v4.content.ContextCompat;
@@ -31,6 +32,7 @@ import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.data.Action;
 import eu.applabs.allplaytv.presenter.ActionPresenter;
+import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
 import eu.applabs.allplaytv.presenter.PlaylistPresenter;
 
 public class MainActivity extends Activity implements MusicLibrary.OnMusicLibraryUpdateListener,
@@ -62,6 +64,13 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
         mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_MainActivity);
 
         mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+        mBrowseFragment.setHeaderPresenterSelector(new PresenterSelector() {
+            @Override
+            public Presenter getPresenter(Object item) {
+                return new IconHeaderItemPresenter();
+            }
+        });
+
         mBrowseFragment.setTitle(getString(R.string.app_name));
         mBrowseFragment.setOnItemViewClickedListener(this);
         mBrowseFragment.setOnSearchClickedListener(this);
@@ -123,10 +132,24 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
                                 }
 
                                 if (category.getCategoryName().compareTo(getResources().getString(R.string.category_currentplayback)) == 0) {
-                                    HeaderItem header = new HeaderItem(category.getCategoryName());
+                                    IconHeaderItem header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_playing));
                                     mMusicLibraryAdapter.add(0, new ListRow(header, categoryAdapter));
                                 } else {
-                                    HeaderItem header = new HeaderItem(category.getCategoryName());
+                                    IconHeaderItem header = null;
+                                    switch (library.getServiceType()) {
+                                        case SPOTIFY:
+                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_spotify));
+                                            break;
+                                        case DEEZER:
+                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_deezer));
+                                            break;
+                                        case GOOGLE_MUSIC:
+                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_googlemusic));
+                                            break;
+                                        default:
+                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_default));
+                                            break;
+                                    }
                                     mMusicLibraryAdapter.add(new ListRow(header, categoryAdapter));
                                 }
                             }
@@ -214,7 +237,7 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     }
 
     private void addActionAdapter() {
-        HeaderItem header = new HeaderItem(getResources().getString(R.string.mainactivity_header_settings));
+        IconHeaderItem header = new IconHeaderItem(getResources().getString(R.string.mainactivity_header_settings), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_settings));
         mMusicLibraryAdapter.add(new ListRow(header, mActionAdapter));
     }
 }

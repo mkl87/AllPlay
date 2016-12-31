@@ -15,6 +15,7 @@ import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class DeezerPlaylist extends ServicePlaylist {
 
@@ -44,7 +45,7 @@ public class DeezerPlaylist extends ServicePlaylist {
                 song.setArtist(t.getArtist().getName());
                 song.setCoverSmall(mCover);
                 song.setId(String.valueOf(t.getId()));
-                song.setServiceType(ServicePlayer.ServiceType.Deezer);
+                song.setServiceType(ServiceType.DEEZER);
                 song.setUri(t.getPreviewUrl());
                 song.setDuration((long) t.getDuration());
 
@@ -67,7 +68,7 @@ public class DeezerPlaylist extends ServicePlaylist {
                 song.setArtist(t.getArtist().getName());
                 song.setCoverSmall(mCover);
                 song.setId(String.valueOf(t.getId()));
-                song.setServiceType(ServicePlayer.ServiceType.Deezer);
+                song.setServiceType(ServiceType.DEEZER);
                 song.setUri(t.getPreviewUrl());
                 song.setDuration((long) t.getDuration());
 
@@ -90,7 +91,7 @@ public class DeezerPlaylist extends ServicePlaylist {
             song.setArtist(t.getArtist().getName());
             song.setCoverSmall(mCover);
             song.setId(String.valueOf(t.getId()));
-            song.setServiceType(ServicePlayer.ServiceType.Deezer);
+            song.setServiceType(ServiceType.DEEZER);
             song.setUri(t.getPreviewUrl());
             song.setDuration((long) t.getDuration());
 

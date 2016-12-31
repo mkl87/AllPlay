@@ -3,13 +3,17 @@ package eu.applabs.allplaylibrary.data;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServiceLibrary {
+import eu.applabs.allplaylibrary.services.ServiceType;
+
+public abstract class ServiceLibrary {
 
     private List<ServiceCategory> mServiceCategoryList = new ArrayList<>();
 
     public interface OnServiceLibrarySearchResult {
         void onSearchResult(List<ServiceCategory> list);
     }
+
+    public abstract ServiceType getServiceType();
 
     public void clearLibrary() {
         for(ServiceCategory category : mServiceCategoryList) {

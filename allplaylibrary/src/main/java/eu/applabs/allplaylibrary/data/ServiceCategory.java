@@ -25,6 +25,11 @@ public abstract class ServiceCategory {
         AllPlayLibrary.getInstance().component().inject(this);
     }
 
+    /**
+     * Abstract method to specify the name of the category
+     *
+     * @return String (Example: Favorites)
+     */
     public abstract String getCategoryName();
 
     public void clearCategory() {

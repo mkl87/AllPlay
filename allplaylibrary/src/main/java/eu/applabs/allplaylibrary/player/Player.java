@@ -21,6 +21,7 @@ import java.util.Set;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.data.Song;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlayer;
 
@@ -51,9 +52,8 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         mSettingsManager = SettingsManager.getInstance();
         mSettingsManager.initialize(mActivity);
 
-        for(String s : mSettingsManager.getConnectedServices()) {
-            int service = Integer.valueOf(s);
-            login(ServicePlayer.ServiceType.values()[service]);
+        for(ServiceType serviceType : mSettingsManager.getConnectedServices()) {
+            login(serviceType);
         }
     }
 
@@ -83,16 +83,16 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         }
     }
 
-    public boolean login(ServicePlayer.ServiceType type) {
+    public boolean login(ServiceType type) {
         ServicePlayer player = null;
 
         switch(type) {
-            case Spotify:
+            case SPOTIFY:
                 player = new SpotifyPlayer();
                 break;
-            case GoogleMusic:
+            case GOOGLE_MUSIC:
                 return false;
-            case Deezer:
+            case DEEZER:
                 player = new DeezerPlayer();
                 break;
         }
@@ -106,7 +106,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         return true;
     }
 
-    public boolean logout(ServicePlayer.ServiceType type) {
+    public boolean logout(ServiceType type) {
         ServicePlayer player = null;
 
         for(ServicePlayer iplayer : mServicePlayerList) {
@@ -117,8 +117,8 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         }
 
         if(player != null) {
-            Set<String> connectedServices = mSettingsManager.getConnectedServices();
-            connectedServices.remove(String.valueOf(player.getServiceType().getValue()));
+            List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+            connectedServices.remove(player.getServiceType());
             mSettingsManager.setConnectedServices(connectedServices);
 
             player.unregisterListener(this);
@@ -241,7 +241,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     }
 
     @Override
-    public void onPlayerStateChanged(ServicePlayer.ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
+    public void onPlayerStateChanged(ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
         // Just inform the client if we got an update from the current player
         if(mActiveServicePlayer != null && mActiveServicePlayer.getServiceType() == type) {
             for(PlayerListener listener : mPlayerListenerList) {
@@ -261,10 +261,9 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     }
 
     @Override
-    public void onLoginSuccess(ServicePlayer.ServiceType type) {
-        Set<String> connectedServices = mSettingsManager.getConnectedServices();
-        connectedServices.add(String.valueOf(type.getValue()));
-
+    public void onLoginSuccess(ServiceType type) {
+        List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+        connectedServices.add(type);
         mSettingsManager.setConnectedServices(connectedServices);
 
         for(PlayerListener listener : mPlayerListenerList) {
@@ -273,10 +272,9 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     }
 
     @Override
-    public void onLoginError(ServicePlayer.ServiceType type) {
-        Set<String> connectedServices = mSettingsManager.getConnectedServices();
-        connectedServices.remove(String.valueOf(type.getValue()));
-
+    public void onLoginError(ServiceType type) {
+        List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+        connectedServices.remove(type);
         mSettingsManager.setConnectedServices(connectedServices);
 
         for(PlayerListener listener : mPlayerListenerList) {
@@ -285,14 +283,14 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     }
 
     @Override
-    public void onLogoutSuccess(ServicePlayer.ServiceType type) {
+    public void onLogoutSuccess(ServiceType type) {
         for(PlayerListener listener : mPlayerListenerList) {
             listener.onLogoutSuccess(type);
         }
     }
 
     @Override
-    public void onLogoutError(ServicePlayer.ServiceType type) {
+    public void onLogoutError(ServiceType type) {
         for(PlayerListener listener : mPlayerListenerList) {
             listener.onLogoutError(type);
         }

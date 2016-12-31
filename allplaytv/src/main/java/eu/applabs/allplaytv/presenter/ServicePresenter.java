@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 
 import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 
 public class ServicePresenter extends Presenter {
@@ -53,19 +54,19 @@ public class ServicePresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
-        ServicePlayer.ServiceType type = (ServicePlayer.ServiceType) item;
+        ServiceType type = (ServiceType) item;
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         switch(type) {
-            case GoogleMusic:
+            case GOOGLE_MUSIC:
                 cardView.setTitleText(mParent.getResources().getString(R.string.service_gmusic));
                 cardView.setMainImage(mParent.getResources().getDrawable(R.drawable.gmusic, null));
                 break;
-            case Spotify:
+            case SPOTIFY:
                 cardView.setTitleText(mParent.getResources().getString(R.string.service_spotify));
                 cardView.setMainImage(mParent.getResources().getDrawable(R.drawable.spotify, null));
                 break;
-            case Deezer:
+            case DEEZER:
                 cardView.setTitleText(mParent.getResources().getString(R.string.service_deezer));
                 cardView.setMainImage(mParent.getResources().getDrawable(R.drawable.deezer, null));
                 break;

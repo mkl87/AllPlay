@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class GMusicPlayer implements ServicePlayer {
 

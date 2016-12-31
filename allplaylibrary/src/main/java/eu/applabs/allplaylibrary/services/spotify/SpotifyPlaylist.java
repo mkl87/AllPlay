@@ -12,6 +12,7 @@ import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;
 import kaaes.spotify.webapi.android.models.Artist;
@@ -68,7 +69,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
             song.setTitle(savedtrack.track.name);
             song.setUri(savedtrack.track.uri);
-            song.setServiceType(ServicePlayer.ServiceType.Spotify);
+            song.setServiceType(ServiceType.SPOTIFY);
 
             List<ArtistSimple> artists = savedtrack.track.artists;
             if (artists.size() > 0) {
@@ -98,7 +99,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
             song.setTitle(track.name);
             song.setUri(track.uri);
-            song.setServiceType(ServicePlayer.ServiceType.Spotify);
+            song.setServiceType(ServiceType.SPOTIFY);
 
             List<ArtistSimple> artists = track.artists;
             if (artists.size() > 0) {
@@ -163,7 +164,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
                     song.setTitle(track.name);
                     song.setUri(track.uri);
-                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
+                    song.setServiceType(ServiceType.SPOTIFY);
 
                     List<ArtistSimple> artists = track.artists;
                     if (artists.size() > 0) {
@@ -213,7 +214,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
                     song.setTitle(track.name);
                     song.setUri(track.uri);
-                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
+                    song.setServiceType(ServiceType.SPOTIFY);
 
                     List<ArtistSimple> artists = track.artists;
                     if (artists.size() > 0) {
@@ -254,7 +255,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
                     song.setTitle(strack.name);
                     song.setUri(strack.uri);
-                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
+                    song.setServiceType(ServiceType.SPOTIFY);
 
                     List<ArtistSimple> artists = strack.artists;
                     if (artists.size() > 0) {
@@ -315,7 +316,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
                     song.setTitle(track.name);
                     song.setUri(track.uri);
-                    song.setServiceType(ServicePlayer.ServiceType.Spotify);
+                    song.setServiceType(ServiceType.SPOTIFY);
 
                     List<ArtistSimple> artists = track.artists;
                     if (artists.size() > 0) {

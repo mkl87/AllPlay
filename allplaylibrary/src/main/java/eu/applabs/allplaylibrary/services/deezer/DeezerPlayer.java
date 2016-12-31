@@ -37,11 +37,12 @@ import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
+import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPlayerProgressListener, OnPlayerStateChangeListener {
 
     private State mState;
-    private ServiceLibrary mDeezerService = new ServiceLibrary();
+    private DeezerService mDeezerService = new DeezerService();
     private DeezerCategory mDeezerCategoryPlaylists;
     private DeezerCategory mDeezerCategoryAlbums;
     private DeezerCategory mDeezerCategoryOwnCharts;
@@ -111,12 +112,12 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     @Override
     public ServiceType getServiceType() {
-        return ServiceType.Deezer;
+        return ServiceType.DEEZER;
     }
 
     @Override
     public boolean play(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Deezer) {
+        if(song != null && song.getServiceType() == ServiceType.DEEZER) {
             if(mDeezerPlayer != null) {
                 if(mState == State.Playing || mState == State.Paused) {
                     mDeezerPlayer.stop();
@@ -134,7 +135,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     @Override
     public boolean pause(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Deezer) {
+        if(song != null && song.getServiceType() == ServiceType.DEEZER) {
 
             if(mDeezerPlayer != null) {
                 mDeezerPlayer.pause();
@@ -149,7 +150,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     @Override
     public boolean resume(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Deezer) {
+        if(song != null && song.getServiceType() == ServiceType.DEEZER) {
 
             if(mDeezerPlayer != null) {
                 mDeezerPlayer.play();
@@ -164,7 +165,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     @Override
     public boolean stop(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Deezer) {
+        if(song != null && song.getServiceType() == ServiceType.DEEZER) {
 
             if(mDeezerPlayer != null) {
                 mDeezerPlayer.stop();
@@ -246,7 +247,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
         mState = new_state;
 
         for(PlayerListener listener : mPlayerListenerList) {
-            listener.onPlayerStateChanged(ServiceType.Deezer, old_state, new_state);
+            listener.onPlayerStateChanged(ServiceType.DEEZER, old_state, new_state);
         }
     }
 
@@ -258,13 +259,13 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     private void notifyLoginSuccess() {
         for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLoginSuccess(ServiceType.Deezer);
+            listener.onLoginSuccess(ServiceType.DEEZER);
         }
     }
 
     private void notifyLoginError() {
         for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLoginError(ServiceType.Deezer);
+            listener.onLoginError(ServiceType.DEEZER);
         }
     }
 

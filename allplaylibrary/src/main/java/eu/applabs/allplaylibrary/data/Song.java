@@ -1,10 +1,11 @@
 package eu.applabs.allplaylibrary.data;
 
 import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class Song {
 
-    private ServicePlayer.ServiceType mServiceType;
+    private ServiceType mServiceType;
     private String mUri;
     private String mId;
 
@@ -21,7 +22,7 @@ public class Song {
     private int mDislikes;
 
     public Song() {
-        mServiceType = ServicePlayer.ServiceType.Undefined;
+        mServiceType = ServiceType.UNDEFINED;
         mUri = "";
         mId = "";
         mTitle = "";
@@ -38,7 +39,7 @@ public class Song {
 
     // Setter
 
-    public void setServiceType(ServicePlayer.ServiceType serviceType) {
+    public void setServiceType(ServiceType serviceType) {
         mServiceType = serviceType;
     }
 
@@ -92,7 +93,7 @@ public class Song {
 
     // Getter
 
-    public ServicePlayer.ServiceType getServiceType() {
+    public ServiceType getServiceType() {
         return mServiceType;
     }
 

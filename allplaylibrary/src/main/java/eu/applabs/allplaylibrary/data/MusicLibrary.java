@@ -1,5 +1,7 @@
 package eu.applabs.allplaylibrary.data;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -18,61 +20,27 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
     }
 
     public void clearLibrary() {
-        for(ServiceLibrary library : mServiceLibraryList) {
-
-            // Unregister from category and playlist updates
-            for(ServiceCategory serviceCategory : library.getCategories()) {
-                serviceCategory.unregisterListener(this);
-
-                for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
-                    servicePlaylist.unregisterListener(this);
-                }
-            }
-
-            library.clearLibrary();
+        for(ServiceLibrary serviceLibrary : mServiceLibraryList) {
+            unregisterFromAllEvents(serviceLibrary);
+            serviceLibrary.clearLibrary();
         }
 
         mServiceLibraryList.clear();
-    }
-
-    public void search(String query, ServiceLibrary.OnServiceLibrarySearchResult callback) {
-        if(query != null && callback != null) {
-            QueryThread qt = new QueryThread(query, callback);
-            qt.start();
-        }
     }
 
     public List<ServiceLibrary> getLibraries() {
         return mServiceLibraryList;
     }
 
-    public void addMusicLibrary(ServiceLibrary library) {
-
-        // Register for category and playlist updates
-        for(ServiceCategory serviceCategory : library.getCategories()) {
-            serviceCategory.registerListener(this);
-
-            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
-                servicePlaylist.registerListener(this);
-            }
-        }
-
-        mServiceLibraryList.add(library);
+    public void addMusicLibrary(ServiceLibrary serviceLibrary) {
+        registerForAllEvents(serviceLibrary);
+        mServiceLibraryList.add(serviceLibrary);
         notifyMLU();
     }
 
-    public void removeMusicLibrary(ServiceLibrary library) {
-
-        // Unregister from category and playlist updates
-        for(ServiceCategory serviceCategory : library.getCategories()) {
-            serviceCategory.unregisterListener(this);
-
-            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
-                servicePlaylist.unregisterListener(this);
-            }
-        }
-
-        mServiceLibraryList.remove(library);
+    public void removeMusicLibrary(ServiceLibrary serviceLibrary) {
+        unregisterFromAllEvents(serviceLibrary);
+        mServiceLibraryList.remove(serviceLibrary);
         notifyMLU();
     }
 
@@ -84,14 +52,6 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
         mOnMusicLibraryUpdateListenerList.remove(listener);
     }
 
-    private void notifyMLU() {
-        for(OnMusicLibraryUpdateListener listener : mOnMusicLibraryUpdateListenerList) {
-            if(listener != null) {
-                listener.onMusicLibraryUpdate();
-            }
-        }
-    }
-
     @Override
     public void onCategoryUpdate() {
         notifyMLU();
@@ -100,6 +60,39 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
     @Override
     public void onPlaylistUpdate() {
         notifyMLU();
+    }
+
+    public void search(@NonNull String query, @NonNull ServiceLibrary.OnServiceLibrarySearchResult callback) {
+        QueryThread qt = new QueryThread(query, callback);
+        qt.start();
+    }
+
+    private void registerForAllEvents(@NonNull ServiceLibrary serviceLibrary) {
+        for(ServiceCategory serviceCategory : serviceLibrary.getCategories()) {
+            serviceCategory.registerListener(this);
+
+            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+                servicePlaylist.registerListener(this);
+            }
+        }
+    }
+
+    private void unregisterFromAllEvents(@NonNull ServiceLibrary serviceLibrary) {
+        for(ServiceCategory serviceCategory : serviceLibrary.getCategories()) {
+            serviceCategory.unregisterListener(this);
+
+            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+                servicePlaylist.unregisterListener(this);
+            }
+        }
+    }
+
+    private void notifyMLU() {
+        for(OnMusicLibraryUpdateListener listener : mOnMusicLibraryUpdateListenerList) {
+            if(listener != null) {
+                listener.onMusicLibraryUpdate();
+            }
+        }
     }
 
     private class QueryThread extends Thread {

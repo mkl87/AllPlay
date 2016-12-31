@@ -8,6 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.ServiceLibrary;
 import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;
 import kaaes.spotify.webapi.android.models.AlbumSimple;
@@ -39,6 +40,11 @@ public class SpotifyServiceWrapper extends ServiceLibrary {
 
     public void setSpotifyUser(UserPrivate user) {
         mUser = user;
+    }
+
+    @Override
+    public ServiceType getServiceType() {
+        return ServiceType.SPOTIFY;
     }
 
     @Override

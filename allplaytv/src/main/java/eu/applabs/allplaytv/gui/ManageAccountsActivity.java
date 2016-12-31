@@ -30,6 +30,7 @@ import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.ServicePresenter;
 
@@ -42,8 +43,8 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
     private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
 
-    private List<ServicePlayer.ServiceType> mConnectedServices = new ArrayList<>();
-    private List<ServicePlayer.ServiceType> mAvailableServices = new ArrayList<>();
+    private List<ServiceType> mConnectedServices = new ArrayList<>();
+    private List<ServiceType> mAvailableServices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,11 +102,10 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                     // Connected services
 
                     ArrayObjectAdapter connectedServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
-                    Set<String> connectedServices = mSettingsManager.getConnectedServices();
-                    for(String s : mSettingsManager.getConnectedServices()) {
-                        ServicePlayer.ServiceType type = ServicePlayer.ServiceType.values()[Integer.valueOf(s)];
-                        connectedServiceAdapter.add(type);
-                        mConnectedServices.add(type);
+                    List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+                    for(ServiceType serviceType : connectedServices) {
+                        connectedServiceAdapter.add(serviceType);
+                        mConnectedServices.add(serviceType);
                     }
 
                     HeaderItem connectedServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_connectedservices));
@@ -115,19 +115,19 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
                     ArrayObjectAdapter availableServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
 
-                    if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.GoogleMusic.getValue()))) {
-                        availableServiceAdapter.add(ServicePlayer.ServiceType.GoogleMusic);
-                        mAvailableServices.add(ServicePlayer.ServiceType.GoogleMusic);
+                    if(!connectedServices.contains(String.valueOf(ServiceType.GOOGLE_MUSIC))) {
+                        availableServiceAdapter.add(ServiceType.GOOGLE_MUSIC);
+                        mAvailableServices.add(ServiceType.GOOGLE_MUSIC);
                     }
 
-                    if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.Spotify.getValue()))) {
-                        availableServiceAdapter.add(ServicePlayer.ServiceType.Spotify);
-                        mAvailableServices.add(ServicePlayer.ServiceType.Spotify);
+                    if(!connectedServices.contains(String.valueOf(ServiceType.SPOTIFY))) {
+                        availableServiceAdapter.add(ServiceType.SPOTIFY);
+                        mAvailableServices.add(ServiceType.SPOTIFY);
                     }
 
-                    if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.Deezer.getValue()))) {
-                        availableServiceAdapter.add(ServicePlayer.ServiceType.Deezer);
-                        mAvailableServices.add(ServicePlayer.ServiceType.Deezer);
+                    if(!connectedServices.contains(String.valueOf(ServiceType.DEEZER))) {
+                        availableServiceAdapter.add(ServiceType.DEEZER);
+                        mAvailableServices.add(ServiceType.DEEZER);
                     }
 
                     HeaderItem availableServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_availableservices));
@@ -139,8 +139,8 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
-        if(item instanceof ServicePlayer.ServiceType) {
-            final ServicePlayer.ServiceType type = (ServicePlayer.ServiceType) item;
+        if(item instanceof ServiceType) {
+            final ServiceType type = (ServiceType) item;
             final Player player = AllPlayLibrary.getInstance().getPlayer();
 
             if(mAvailableServices.contains(type)) {
@@ -167,7 +167,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     }
 
     @Override
-    public void onPlayerStateChanged(ServicePlayer.ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
+    public void onPlayerStateChanged(ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
         // Nothing to do..
     }
 
@@ -177,22 +177,22 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     }
 
     @Override
-    public void onLoginSuccess(ServicePlayer.ServiceType type) {
+    public void onLoginSuccess(ServiceType type) {
         updateUI();
     }
 
     @Override
-    public void onLoginError(ServicePlayer.ServiceType type) {
+    public void onLoginError(ServiceType type) {
         Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_loginerror), Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onLogoutSuccess(ServicePlayer.ServiceType type) {
+    public void onLogoutSuccess(ServiceType type) {
         updateUI();
     }
 
     @Override
-    public void onLogoutError(ServicePlayer.ServiceType type) {
+    public void onLogoutError(ServiceType type) {
         Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_logouterror), Toast.LENGTH_SHORT).show();
     }
 

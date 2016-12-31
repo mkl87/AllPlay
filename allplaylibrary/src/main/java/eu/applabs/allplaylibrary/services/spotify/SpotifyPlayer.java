@@ -29,6 +29,7 @@ import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.data.Song;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Pager;
@@ -169,7 +170,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public ServiceType getServiceType() {
-        return ServiceType.Spotify;
+        return ServiceType.SPOTIFY;
     }
 
     @Override
@@ -179,7 +180,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public boolean play(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Spotify) {
+        if(song != null && song.getServiceType() == ServiceType.SPOTIFY) {
             if(mPlayer != null) {
                 if(mState == State.Playing || mState == State.Paused) {
                     mTrackEndBroadcastEnabled = false;
@@ -207,7 +208,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public boolean resume(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Spotify) {
+        if(song != null && song.getServiceType() == ServiceType.SPOTIFY) {
 
             if(mPlayer != null) {
                 mPlayer.resume(new Player.OperationCallback() {
@@ -232,7 +233,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public boolean pause(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Spotify) {
+        if(song != null && song.getServiceType() == ServiceType.SPOTIFY) {
 
             if(mPlayer != null) {
                 mPlayer.pause(new Player.OperationCallback() {
@@ -257,7 +258,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     @Override
     public boolean stop(Song song) {
-        if(song != null && song.getServiceType() == ServiceType.Spotify) {
+        if(song != null && song.getServiceType() == ServiceType.SPOTIFY) {
 
             if(mPlayer != null) {
                 mPlayer.pause(new Player.OperationCallback() {
@@ -352,7 +353,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
         mState = new_state;
 
         for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onPlayerStateChanged(ServiceType.Spotify, old_state, new_state);
+            listener.onPlayerStateChanged(ServiceType.SPOTIFY, old_state, new_state);
         }
     }
 
@@ -364,13 +365,13 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     private void notifyLoginSuccess() {
         for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onLoginSuccess(ServiceType.Spotify);
+            listener.onLoginSuccess(ServiceType.SPOTIFY);
         }
     }
 
     private void notifyLoginError() {
         for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onLoginError(ServiceType.Spotify);
+            listener.onLoginError(ServiceType.SPOTIFY);
         }
     }
 

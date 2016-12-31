@@ -20,6 +20,7 @@ import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
@@ -119,7 +120,7 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
     }
 
     @Override
-    public void onPlayerStateChanged(ServicePlayer.ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
+    public void onPlayerStateChanged(ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
         // Nothing to do
     }
 
@@ -129,22 +130,22 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
     }
 
     @Override
-    public void onLoginSuccess(ServicePlayer.ServiceType type) {
+    public void onLoginSuccess(ServiceType type) {
         // Nothing to do
     }
 
     @Override
-    public void onLoginError(ServicePlayer.ServiceType type) {
+    public void onLoginError(ServiceType type) {
         // Nothing to do
     }
 
     @Override
-    public void onLogoutSuccess(ServicePlayer.ServiceType type) {
+    public void onLogoutSuccess(ServiceType type) {
         // Nothing to do
     }
 
     @Override
-    public void onLogoutError(ServicePlayer.ServiceType type) {
+    public void onLogoutError(ServiceType type) {
         // Nothing to do
     }
 

@@ -12,13 +12,14 @@ import eu.applabs.allplaylibrary.data.ServiceCategory;
 import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
+import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class NowPlayingPlaylist extends ServicePlaylist {
 
     private Activity mActivity;
     private int mCurrentIndex = 0;
 
-    private ServiceLibrary mNowPlayingServiceLibrary = new ServiceLibrary();
+    private NowPlayingServiceLibrary mNowPlayingServiceLibrary = new NowPlayingServiceLibrary();
     private NowPlayingCategory mNowPlayingCategory = new NowPlayingCategory();
     private MusicLibrary mMusicLibrary;
 
@@ -132,6 +133,15 @@ public class NowPlayingPlaylist extends ServicePlaylist {
         }
 
         return "";
+    }
+
+    private class NowPlayingServiceLibrary extends ServiceLibrary {
+
+        @Override
+        public ServiceType getServiceType() {
+            return ServiceType.UNDEFINED;
+        }
+
     }
 
     private class NowPlayingCategory extends ServiceCategory {

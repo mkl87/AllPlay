@@ -1,27 +1,11 @@
 package eu.applabs.allplaylibrary.player;
 
-import android.app.Activity;
 import android.content.Intent;
 
 import eu.applabs.allplaylibrary.data.Song;
+import eu.applabs.allplaylibrary.services.ServiceType;
 
 public interface ServicePlayer {
-
-    enum ServiceType {
-        Undefined(0),
-        Spotify(1),
-        GoogleMusic(2),
-        Deezer(3);
-
-        private int m_Value = 0;
-        private ServiceType(int value) {
-            this.m_Value = value;
-        }
-
-        public int getValue() {
-            return m_Value;
-        }
-    }
 
     enum State {
         Undefined,
