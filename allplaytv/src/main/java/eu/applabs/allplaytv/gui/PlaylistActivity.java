@@ -15,17 +15,18 @@ import com.bumptech.glide.Glide;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import eu.applabs.allplaylibrary.AllPlayLibrary;
+import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.player.PlayerListener;
-import eu.applabs.allplaylibrary.player.Playlist;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
-public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpdateListener, PlayerListener, PlaylistAdapter.OnPositionSelectedListener {
+public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnPlaylistUpdateListener, PlayerListener, PlaylistAdapter.OnPositionSelectedListener {
 
-    private Player mPlayer;
-    private Playlist mPlaylist;
+    private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
+    private NowPlayingPlaylist mNowPlayingPlaylist;
 
     private LinearLayoutManager mLinearLayoutManager;
     private PlaylistAdapter mPlaylistAdapter;
@@ -43,17 +44,16 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
         setContentView(R.layout.activity_showplaylist);
         ButterKnife.bind(this);
 
-        mPlayer = Player.getInstance();
         mPlayer.registerListener(this);
-        mPlaylist = mPlayer.getPlaylist();
-        mPlaylist.registerListener(this);
+        mNowPlayingPlaylist = mPlayer.getPlaylist();
+        mNowPlayingPlaylist.registerListener(this);
 
         mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        mLinearLayoutManager.scrollToPositionWithOffset(mPlaylist.getCurrentSongIndex(), 640);
+        mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
 
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
-        mPlaylistAdapter = new PlaylistAdapter(this, mBackground, Player.getInstance().getPlaylist().getPlaylistAsSongList(), this);
+        mPlaylistAdapter = new PlaylistAdapter(mBackground, mPlayer.getPlaylist().getPlaylistAsSongList(), this);
         mRecyclerView.setAdapter(mPlaylistAdapter);
     }
 
@@ -62,9 +62,9 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
         super.onDestroy();
 
         mPlayer.unregisterListener(this);
-        mPlaylist.unregisterListener(this);
+        mNowPlayingPlaylist.unregisterListener(this);
 
-        mPlaylistAdapter.clearPlaylistAdapter();
+        mPlaylistAdapter.clearImages();
         mPlaylistAdapter = null;
 
         mBackground = null;
@@ -112,8 +112,8 @@ public class PlaylistActivity extends Activity implements Playlist.OnPlaylistUpd
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mPlaylistAdapter.updatePlaylist(mPlaylist.getPlaylistAsSongList());
-                mLinearLayoutManager.scrollToPositionWithOffset(mPlaylist.getCurrentSongIndex(), 640);
+                mPlaylistAdapter.updatePlaylist(mNowPlayingPlaylist.getPlaylistAsSongList());
+                mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
             }
         });
     }

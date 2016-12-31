@@ -14,18 +14,20 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.content.ContextCompat;
 import android.view.KeyEvent;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
 
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.ServiceLibrary;
 import eu.applabs.allplaylibrary.data.ServiceCategory;
 import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
-import eu.applabs.allplaylibrary.player.Playlist;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.data.Action;
 import eu.applabs.allplaytv.presenter.ActionPresenter;
@@ -35,9 +37,9 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
                                                             OnItemViewClickedListener,
                                                             View.OnClickListener {
 
-    private Activity mActivity;
+    private Activity mActivity = this;
     private Player mPlayer;
-    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    private MusicLibrary mMusicLibrary;
 
     private FragmentManager mFragmentManager;
     private BrowseFragment mBrowseFragment;
@@ -50,30 +52,30 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mActivity = this;
+        // Init the library
+        AllPlayLibrary library = AllPlayLibrary.getInstance();
+        library.init(this);
+        mPlayer = library.getPlayer();
+        mMusicLibrary = library.getMusicLibrary();
 
         mFragmentManager = getFragmentManager();
         mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_MainActivity);
 
         mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-        mBrowseFragment.setTitle("AllPlay");
+        mBrowseFragment.setTitle(getString(R.string.app_name));
         mBrowseFragment.setOnItemViewClickedListener(this);
         mBrowseFragment.setOnSearchClickedListener(this);
-        mBrowseFragment.setSearchAffordanceColor(getResources().getColor(R.color.accent));
+        mBrowseFragment.setSearchAffordanceColor(ContextCompat.getColor(this, R.color.accent));
 
         BackgroundManager backgroundManager = BackgroundManager.getInstance(this);
         backgroundManager.attach(this.getWindow());
-        backgroundManager.setDrawable(getResources().getDrawable(R.drawable.background, null));
+        backgroundManager.setDrawable(ContextCompat.getDrawable(this, R.drawable.background));
 
         mMusicLibraryAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         mBrowseFragment.setAdapter(mMusicLibraryAdapter);
         initializeActionAdapter();
 
-        mMusicLibrary = MusicLibrary.getInstance();
         mMusicLibrary.registerListener(this);
-
-        mPlayer = Player.getInstance();
-        mPlayer.initialize(this);
     }
 
     @Override
@@ -164,17 +166,17 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     @Override
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if(item instanceof ServicePlaylist) {
-            ServicePlaylist imusiclibraryplaylist = (ServicePlaylist) item;
+            ServicePlaylist servicePlaylist = (ServicePlaylist) item;
 
-            if(imusiclibraryplaylist instanceof Playlist) {
+            if(servicePlaylist instanceof NowPlayingPlaylist) {
                 Intent intent = new Intent(this, PlaylistActivity.class);
                 startActivity(intent);
                 return;
             }
 
-            Playlist playlist = mPlayer.getPlaylist();
-            playlist.clear();
-            playlist.setPlaylist(imusiclibraryplaylist.getPlaylist());
+            NowPlayingPlaylist nowPlayingPlaylist = mPlayer.getPlaylist();
+            nowPlayingPlaylist.clear();
+            nowPlayingPlaylist.setPlaylist(servicePlaylist.getPlaylist());
 
             mPlayer.play();
 

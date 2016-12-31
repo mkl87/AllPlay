@@ -22,30 +22,15 @@ import kaaes.spotify.webapi.android.models.Tracks;
 import kaaes.spotify.webapi.android.models.TracksPager;
 import kaaes.spotify.webapi.android.models.UserPrivate;
 
-public class SpotifyServiceWrapper implements ServiceLibrary {
+public class SpotifyServiceWrapper extends ServiceLibrary {
 
     Activity mActivity = null;
 
     SpotifyService mSpotifyService = null;
     UserPrivate mUser = null;
-    List<ServiceCategory> mServiceCategoryList = new CopyOnWriteArrayList<>();;
 
     public SpotifyServiceWrapper(Activity activity) {
         mActivity = activity;
-    }
-
-    @Override
-    public void clearLibrary() {
-        for(ServiceCategory category : mServiceCategoryList) {
-            category.clearCategory();
-        }
-
-        mServiceCategoryList.clear();
-    }
-
-    @Override
-    public List<ServiceCategory> getCategories() {
-        return mServiceCategoryList;
     }
 
     public void setSpotifyService(SpotifyService service) {
@@ -54,14 +39,6 @@ public class SpotifyServiceWrapper implements ServiceLibrary {
 
     public void setSpotifyUser(UserPrivate user) {
         mUser = user;
-    }
-
-    public void addCategory(ServiceCategory category) {
-        mServiceCategoryList.add(category);
-    }
-
-    public void removeCategory(ServiceCategory category) {
-        mServiceCategoryList.remove(category);
     }
 
     @Override

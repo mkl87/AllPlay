@@ -14,21 +14,19 @@ import eu.applabs.allplaytv.R;
 
 public class PlaylistPresenter extends Presenter {
 
-    private static int CARD_WIDTH = 400;
-    private static int CARD_HEIGHT = 400;
+    private static final int CARD_WIDTH = 400;
+    private static final int CARD_HEIGHT = 400;
+
     private static int SELECTED_BACKGROUND = 0;
     private static int DEFAULT_BACKGROUND = 0;
 
-    private ViewGroup mParent;
     private Drawable mDefaultCardImage;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
-        mParent = parent;
-
-        mDefaultCardImage = ContextCompat.getDrawable(mParent.getContext(), R.drawable.nocover);
-        SELECTED_BACKGROUND = ContextCompat.getColor(mParent.getContext(), R.color.accent);
-        DEFAULT_BACKGROUND = ContextCompat.getColor(mParent.getContext(), R.color.primary);
+        mDefaultCardImage = ContextCompat.getDrawable(parent.getContext(), R.drawable.nocover);
+        SELECTED_BACKGROUND = ContextCompat.getColor(parent.getContext(), R.color.accent);
+        DEFAULT_BACKGROUND = ContextCompat.getColor(parent.getContext(), R.color.primary);
 
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
@@ -57,6 +55,7 @@ public class PlaylistPresenter extends Presenter {
     public void onBindViewHolder(ViewHolder viewHolder, Object item) {
         ServicePlaylist playlist = (ServicePlaylist) item;
         ImageCardView cardView = (ImageCardView) viewHolder.view;
+
         cardView.setTitleText(playlist.getPlaylistName());
         cardView.setContentText(String.valueOf(playlist.getSize()));
         cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);

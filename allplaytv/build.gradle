@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 def supportLibraryVersion = "24.1.1"
+def daggerVersion = "2.8"
 def butterKnifeVersion = "8.4.0"
 
 android {
@@ -54,11 +55,15 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile project(':allplaylibrary')
 
+    compile "com.google.dagger:dagger:${daggerVersion}"
+    annotationProcessor "com.google.dagger:dagger-compiler:${daggerVersion}"
+
     compile "com.jakewharton:butterknife:${butterKnifeVersion}"
     annotationProcessor "com.jakewharton:butterknife-compiler:${butterKnifeVersion}"
+
     compile 'com.github.bumptech.glide:glide:3.7.0'
 
-    // Do not update to 25.1.0, Bug in Support-Library which leads to IndexOutOfBound-Exception
+    // Do not update to 25.1.0, Bug in Support-Library which leads to IndexOutOfBoundException
     // Created a report:
     // https://code.google.com/p/android/issues/detail?id=230948&thanks=230948&ts=1482584299
     compile "com.android.support:leanback-v17:${supportLibraryVersion}"

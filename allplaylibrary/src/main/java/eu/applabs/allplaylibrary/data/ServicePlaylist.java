@@ -1,19 +1,47 @@
 package eu.applabs.allplaylibrary.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public interface ServicePlaylist {
+public abstract class ServicePlaylist {
 
-    interface OnPlaylistUpdateListener {
+    public interface OnPlaylistUpdateListener {
         void onPlaylistUpdate();
     }
 
-    void clearPlaylist();
-    String getPlaylistName();
-    String getCoverUrl();
-    int getSize();
-    List<Song> getPlaylist();
+    protected List<Song> mSongList = new ArrayList<>();
+    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new ArrayList<>();
 
-    void registerListener(OnPlaylistUpdateListener listener);
-    void unregisterListener(OnPlaylistUpdateListener listener);
+    public abstract String getPlaylistName();
+    public abstract String getCoverUrl();
+
+    public void clearPlaylist() {
+        mSongList.clear();
+    }
+
+    public int getSize() {
+        return mSongList.size();
+    }
+
+    public List<Song> getPlaylist() {
+        return mSongList;
+    }
+
+    public void registerListener(OnPlaylistUpdateListener listener) {
+        if(!mOnPlaylistUpdateListenerList.contains(listener)) {
+            mOnPlaylistUpdateListenerList.add(listener);
+        }
+    }
+
+    public void unregisterListener(OnPlaylistUpdateListener listener) {
+        if(mOnPlaylistUpdateListenerList.contains(listener)) {
+            mOnPlaylistUpdateListenerList.remove(listener);
+        }
+    }
+
+    protected void notifyListener() {
+        for(OnPlaylistUpdateListener listener : mOnPlaylistUpdateListenerList) {
+            listener.onPlaylistUpdate();
+        }
+    }
 }

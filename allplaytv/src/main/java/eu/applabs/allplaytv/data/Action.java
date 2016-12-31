@@ -5,12 +5,12 @@ import android.graphics.drawable.Drawable;
 
 public class Action {
 
-    private String mName;
+    private String mName = "";
     private Drawable mIcon;
     private Intent mIntent;
 
     public Action() {
-        mName = "";
+
     }
 
     public void setName(String name) {

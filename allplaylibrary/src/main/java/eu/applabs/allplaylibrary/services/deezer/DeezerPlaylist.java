@@ -4,24 +4,30 @@ import com.deezer.sdk.model.Album;
 import com.deezer.sdk.model.Playlist;
 import com.deezer.sdk.model.Track;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 
-public class DeezerPlaylist implements ServicePlaylist {
+public class DeezerPlaylist extends ServicePlaylist {
 
     private String mName;
     private String mCover;
-    private List<Song> mSongList = new CopyOnWriteArrayList<>();
-    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
 
-    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new CopyOnWriteArrayList<>();
+    @Inject
+    protected MusicLibrary mMusicLibrary;
+
+    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new ArrayList<>();
 
     public DeezerPlaylist(String name) {
+        AllPlayLibrary.getInstance().component().inject(this);
         mName = name;
         registerListener(mMusicLibrary);
     }
@@ -95,11 +101,6 @@ public class DeezerPlaylist implements ServicePlaylist {
     }
 
     @Override
-    public void clearPlaylist() {
-        mSongList.clear();
-    }
-
-    @Override
     public String getPlaylistName() {
         return mName;
     }
@@ -107,35 +108,5 @@ public class DeezerPlaylist implements ServicePlaylist {
     @Override
     public String getCoverUrl() {
         return mCover;
-    }
-
-    @Override
-    public int getSize() {
-        if(mSongList != null) {
-            return mSongList.size();
-        }
-
-        return 0;
-    }
-
-    @Override
-    public List<Song> getPlaylist() {
-        return mSongList;
-    }
-
-    @Override
-    public void registerListener(OnPlaylistUpdateListener listener) {
-        mOnPlaylistUpdateListenerList.add(listener);
-    }
-
-    @Override
-    public void unregisterListener(OnPlaylistUpdateListener listener) {
-        mOnPlaylistUpdateListenerList.remove(listener);
-    }
-
-    private void notifyListener() {
-        for(OnPlaylistUpdateListener listener : mOnPlaylistUpdateListenerList) {
-            listener.onPlaylistUpdate();
-        }
     }
 }

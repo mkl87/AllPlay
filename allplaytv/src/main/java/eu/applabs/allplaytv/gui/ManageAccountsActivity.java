@@ -16,6 +16,7 @@ import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
@@ -38,18 +40,15 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     private SettingsManager mSettingsManager;
     private ArrayObjectAdapter mManageAccountAdapter;
 
-    private Player m_Player = null;
+    private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
 
-    private List<ServicePlayer.ServiceType> m_ConnectedServices = null;
-    private List<ServicePlayer.ServiceType> m_AvailableServices = null;
+    private List<ServicePlayer.ServiceType> mConnectedServices = new ArrayList<>();
+    private List<ServicePlayer.ServiceType> mAvailableServices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manageaccounts);
-
-        m_ConnectedServices = new ArrayList<>();
-        m_AvailableServices = new ArrayList<>();
 
         mSettingsManager = SettingsManager.getInstance();
         mSettingsManager.initialize(this);
@@ -58,18 +57,17 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
         mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_ManageAccounts);
 
         mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-        mBrowseFragment.setTitle("AllPlay");
+        mBrowseFragment.setTitle(getString(R.string.app_name));
         mBrowseFragment.setOnItemViewClickedListener(this);
 
         BackgroundManager backgroundManager = BackgroundManager.getInstance(this);
         backgroundManager.attach(this.getWindow());
-        backgroundManager.setDrawable(getResources().getDrawable(R.drawable.background, null));
+        backgroundManager.setDrawable(ContextCompat.getDrawable(this, R.drawable.background));
 
         mManageAccountAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         mBrowseFragment.setAdapter(mManageAccountAdapter);
 
-        m_Player = Player.getInstance();
-        m_Player.registerListener(this);
+        mPlayer.registerListener(this);
 
         updateUI();
     }
@@ -78,12 +76,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     protected void onDestroy() {
         super.onDestroy();
 
-        m_Player.unregisterListener(this);
-
-        mFragmentManager = null;
-        mBrowseFragment = null;
-        mManageAccountAdapter = null;
-
+        mPlayer.unregisterListener(this);
         Glide.get(this).clearMemory();
     }
 
@@ -91,7 +84,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(!m_Player.checkActivityResult(requestCode, resultCode, data)) {
+        if(!mPlayer.checkActivityResult(requestCode, resultCode, data)) {
             // Seems to be a result for another request
         }
     }
@@ -102,8 +95,8 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                 @Override
                 public void run() {
                     mManageAccountAdapter.clear();
-                    m_ConnectedServices.clear();
-                    m_AvailableServices.clear();
+                    mConnectedServices.clear();
+                    mAvailableServices.clear();
 
                     // Connected services
 
@@ -112,7 +105,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                     for(String s : mSettingsManager.getConnectedServices()) {
                         ServicePlayer.ServiceType type = ServicePlayer.ServiceType.values()[Integer.valueOf(s)];
                         connectedServiceAdapter.add(type);
-                        m_ConnectedServices.add(type);
+                        mConnectedServices.add(type);
                     }
 
                     HeaderItem connectedServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_connectedservices));
@@ -124,17 +117,17 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
                     if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.GoogleMusic.getValue()))) {
                         availableServiceAdapter.add(ServicePlayer.ServiceType.GoogleMusic);
-                        m_AvailableServices.add(ServicePlayer.ServiceType.GoogleMusic);
+                        mAvailableServices.add(ServicePlayer.ServiceType.GoogleMusic);
                     }
 
                     if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.Spotify.getValue()))) {
                         availableServiceAdapter.add(ServicePlayer.ServiceType.Spotify);
-                        m_AvailableServices.add(ServicePlayer.ServiceType.Spotify);
+                        mAvailableServices.add(ServicePlayer.ServiceType.Spotify);
                     }
 
                     if(!connectedServices.contains(String.valueOf(ServicePlayer.ServiceType.Deezer.getValue()))) {
                         availableServiceAdapter.add(ServicePlayer.ServiceType.Deezer);
-                        m_AvailableServices.add(ServicePlayer.ServiceType.Deezer);
+                        mAvailableServices.add(ServicePlayer.ServiceType.Deezer);
                     }
 
                     HeaderItem availableServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_availableservices));
@@ -148,10 +141,10 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if(item instanceof ServicePlayer.ServiceType) {
             final ServicePlayer.ServiceType type = (ServicePlayer.ServiceType) item;
-            final Player player = Player.getInstance();
+            final Player player = AllPlayLibrary.getInstance().getPlayer();
 
-            if(m_AvailableServices.contains(type)) {
-                if(!player.login(type, this)) {
+            if(mAvailableServices.contains(type)) {
+                if(!player.login(type)) {
                     Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_commingsoon), Toast.LENGTH_SHORT).show();
                 }
             } else {

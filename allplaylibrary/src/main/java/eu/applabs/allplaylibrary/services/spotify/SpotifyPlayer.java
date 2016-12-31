@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.player.PlayerListener;
@@ -40,8 +43,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     private static final String TAG = SpotifyPlayer.class.getSimpleName();
 
-    private Activity mActivity = null;
-    private Player mPlayer = null;
+    private Player mPlayer;
     private boolean mTrackEndBroadcastEnabled = true;
     private State mState = State.Idle;
 
@@ -51,7 +53,12 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
     private List<PlayerListener> mIPlayerListenerList = new CopyOnWriteArrayList<>();
 
-    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    @Inject
+    protected MusicLibrary mMusicLibrary;
+
+    @Inject
+    protected Activity mActivity;
+
     private SpotifyServiceWrapper mSpotifyServiceWrapper;
     private SpotifyCategory mSpotifyCategoryPlaylists;
     private SpotifyCategory mSpotifyCategoryAlbums;
@@ -62,14 +69,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     private SpotifyPlaybackPositionChecker m_SpotifyPlaybackPositionChecker;
 
     public SpotifyPlayer() {
-
-    }
-
-    @Override
-    public void initialize(Activity activity) {
-        if(activity != null) {
-            mActivity = activity;
-        }
+        AllPlayLibrary.getInstance().component().inject(this);
     }
 
     @Override

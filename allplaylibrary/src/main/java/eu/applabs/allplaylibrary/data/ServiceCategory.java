@@ -1,19 +1,71 @@
 package eu.applabs.allplaylibrary.data;
 
+import android.support.annotation.NonNull;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public interface ServiceCategory {
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
+
+public abstract class ServiceCategory {
 
     interface OnCategoryUpdateListener {
         void onCategoryUpdate();
     }
 
-    void clearCategory();
-    String getCategoryName();
-    void addPlaylist(ServicePlaylist playlist);
-    void removePlaylist(ServicePlaylist playlist);
-    List<ServicePlaylist> getPlaylists();
+    @Inject
+    protected MusicLibrary mMusicLibrary;
 
-    void registerListener(OnCategoryUpdateListener listener);
-    void unregisterListener(OnCategoryUpdateListener listener);
+    private List<OnCategoryUpdateListener> mOnCategoryUpdateListenerList = new ArrayList<>();
+    private List<ServicePlaylist> mServicePlaylists = new ArrayList<>();
+
+    public ServiceCategory() {
+        AllPlayLibrary.getInstance().component().inject(this);
+    }
+
+    public abstract String getCategoryName();
+
+    public void clearCategory() {
+        for(ServicePlaylist playlist : mServicePlaylists) {
+            playlist.clearPlaylist();
+        }
+
+        mServicePlaylists.clear();
+    }
+
+    public void addPlaylist(@NonNull ServicePlaylist playlist) {
+        mServicePlaylists.add(playlist);
+        notifyListener();
+    }
+
+    public void removePlaylist(@NonNull ServicePlaylist playlist) {
+        if(mServicePlaylists.contains(playlist)) {
+            mServicePlaylists.remove(playlist);
+            notifyListener();
+        }
+    }
+
+    public List<ServicePlaylist> getPlaylists() {
+        return mServicePlaylists;
+    }
+
+    public void registerListener(@NonNull OnCategoryUpdateListener listener) {
+        if(!mOnCategoryUpdateListenerList.contains(listener)) {
+            mOnCategoryUpdateListenerList.add(listener);
+        }
+    }
+
+    public void unregisterListener(@NonNull OnCategoryUpdateListener listener) {
+        if(mOnCategoryUpdateListenerList.contains(listener)) {
+            mOnCategoryUpdateListenerList.remove(listener);
+        }
+    }
+
+    public void notifyListener() {
+        for(OnCategoryUpdateListener listener : mOnCategoryUpdateListenerList) {
+            listener.onCategoryUpdate();
+        }
+    }
 }

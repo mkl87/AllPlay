@@ -20,12 +20,13 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.ServiceLibrary;
 import eu.applabs.allplaylibrary.data.ServiceCategory;
 import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
-import eu.applabs.allplaylibrary.player.Playlist;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.PlaylistPresenter;
 import eu.applabs.allplaytv.utils.SearchRunnable;
@@ -38,8 +39,9 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
     private ArrayObjectAdapter mRowAdapter;
     private Handler mHandler;
     private SearchRunnable mDelayedLoad;
-    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
-    private Player mPlayer = Player.getInstance();
+    private AllPlayLibrary mLibrary = AllPlayLibrary.getInstance();
+    private MusicLibrary mMusicLibrary = mLibrary.getMusicLibrary();
+    private Player mPlayer = mLibrary.getPlayer();
     private ArrayList<ServicePlaylist> mPlaylistList = new ArrayList<>();
     private SearchActivity mSearchActivity;
 
@@ -102,14 +104,14 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if(item instanceof ServicePlaylist) {
             if(mSearchActivity != null) {
-                ServicePlaylist imusiclibraryplaylist = (ServicePlaylist) item;
-                Playlist playlist = mPlayer.getPlaylist();
-                playlist.clear();
-                playlist.setPlaylist(imusiclibraryplaylist.getPlaylist());
+                ServicePlaylist servicePlaylist = (ServicePlaylist) item;
+                NowPlayingPlaylist nowPlayingPlaylist = mPlayer.getPlaylist();
+                nowPlayingPlaylist.clear();
+                nowPlayingPlaylist.setPlaylist(servicePlaylist.getPlaylist());
 
                 mPlayer.play();
 
-                // Start playlist
+                // Start nowPlayingPlaylist
                 Intent intent = new Intent(mSearchActivity, PlaylistActivity.class);
                 startActivity(intent);
             }

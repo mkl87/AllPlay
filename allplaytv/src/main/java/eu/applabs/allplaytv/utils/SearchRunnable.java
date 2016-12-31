@@ -19,4 +19,5 @@ public class SearchRunnable implements Runnable {
     public void run() {
         mPlaylistSearchFragment.showResultsForQuery(mQuery);
     }
+
 }

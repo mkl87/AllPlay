@@ -18,17 +18,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlayer;
 
-public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener, AudioManager.OnAudioFocusChangeListener {
+public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpdateListener, AudioManager.OnAudioFocusChangeListener {
 
     private static final String TAG = Player.class.getSimpleName();
-
-    private static Player mPlayer;
-    private static boolean mIsInitialized = false;
 
     private Activity mActivity;
     private SettingsManager mSettingsManager;
@@ -40,42 +38,26 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
 
     private List<PlayerListener> mPlayerListenerList;
 
-    Playlist mPlaylist = null;
+    private NowPlayingPlaylist mNowPlayingPlaylist;
 
-    // Private (Singelton)
-    private Player() {}
+    public Player(Activity activity, MusicLibrary musicLibrary) {
+        mActivity = activity;
+        mServicePlayerList = new ArrayList<>();
+        mPlayerListenerList = new ArrayList<>();
 
-    public static synchronized Player getInstance() {
-        if(Player.mPlayer == null) {
-            Player.mPlayer = new Player();
-        }
+        mNowPlayingPlaylist = new NowPlayingPlaylist(mActivity, musicLibrary);
+        mNowPlayingPlaylist.registerListener(this);
 
-        return Player.mPlayer;
-    }
+        mSettingsManager = SettingsManager.getInstance();
+        mSettingsManager.initialize(mActivity);
 
-    public void initialize(Activity activity) {
-        if(!Player.mIsInitialized) {
-            Player.mIsInitialized = true;
-
-            mActivity = activity;
-            mServicePlayerList = new ArrayList<>();
-            mPlayerListenerList = new ArrayList<>();
-
-            mPlaylist = new Playlist(mActivity);
-            mPlaylist.registerListener(this);
-
-            mSettingsManager = SettingsManager.getInstance();
-            mSettingsManager.initialize(mActivity);
-
-            for(String s : mSettingsManager.getConnectedServices()) {
-                int service = Integer.valueOf(s);
-                login(ServicePlayer.ServiceType.values()[service]);
-            }
+        for(String s : mSettingsManager.getConnectedServices()) {
+            int service = Integer.valueOf(s);
+            login(ServicePlayer.ServiceType.values()[service]);
         }
     }
 
     public void clearPlayer() {
-        Player.mIsInitialized = false;
         mActivity = null;
 
         // Clear all initialized player
@@ -88,9 +70,9 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
         mServicePlayerList.clear();
         mServicePlayerList = null;
 
-        mPlaylist.unregisterListener(this);
-        mPlaylist.clear();
-        mPlaylist = null;
+        mNowPlayingPlaylist.unregisterListener(this);
+        mNowPlayingPlaylist.clear();
+        mNowPlayingPlaylist = null;
 
         mPlayerListenerList.clear();
         mPlayerListenerList = null;
@@ -102,10 +84,6 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public boolean login(ServicePlayer.ServiceType type) {
-        return login(type, mActivity);
-    }
-
-    public boolean login(ServicePlayer.ServiceType type, Activity activity) {
         ServicePlayer player = null;
 
         switch(type) {
@@ -121,7 +99,6 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
 
         if(player != null) {
             player.registerListener(this);
-            player.initialize(activity);
             player.login();
             mServicePlayerList.add(player);
         }
@@ -173,8 +150,8 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
         return false;
     }
 
-    public Playlist getPlaylist() {
-        return mPlaylist;
+    public NowPlayingPlaylist getPlaylist() {
+        return mNowPlayingPlaylist;
     }
 
     public ServicePlayer.State getPlayerState() {
@@ -186,7 +163,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public void play() {
-        Song song = mPlaylist.getCurrentSong();
+        Song song = mNowPlayingPlaylist.getCurrentSong();
 
         if(song != null) {
             for(ServicePlayer player : mServicePlayerList) {
@@ -204,7 +181,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public void resume() {
-        Song song = mPlaylist.getCurrentSong();
+        Song song = mNowPlayingPlaylist.getCurrentSong();
 
         if(mActiveServicePlayer != null && song != null) {
             mActiveServicePlayer.resume(song);
@@ -212,7 +189,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public void pause() {
-        Song song = mPlaylist.getCurrentSong();
+        Song song = mNowPlayingPlaylist.getCurrentSong();
 
         if(mActiveServicePlayer != null && song != null) {
             mActiveServicePlayer.pause(song);
@@ -220,7 +197,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public void stop() {
-        Song song = mPlaylist.getCurrentSong();
+        Song song = mNowPlayingPlaylist.getCurrentSong();
 
         if(mActiveServicePlayer != null && song != null) {
             mActiveServicePlayer.stop(song);
@@ -228,7 +205,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public void next() {
-        Song song = mPlaylist.getNextSong();
+        Song song = mNowPlayingPlaylist.getNextSong();
 
         if(song != null) {
             for(ServicePlayer player : mServicePlayerList) {
@@ -246,7 +223,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
     }
 
     public void prev() {
-        Song song = mPlaylist.getPrevSong();
+        Song song = mNowPlayingPlaylist.getPrevSong();
 
         if(song != null) {
             for(ServicePlayer player : mServicePlayerList) {
@@ -278,7 +255,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
         if(event == ServicePlayer.Event.TrackEnd) {
             next(); // Play the next song
         } else if(event == ServicePlayer.Event.Error) {
-            mPlaylist.remove(mPlaylist.getCurrentSong());
+            mNowPlayingPlaylist.remove(mNowPlayingPlaylist.getCurrentSong());
             next();
         }
     }
@@ -352,7 +329,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
                 stateBuilder.setState(0, 100, 1.0f);
 
                 mMediaSessionCompat.setPlaybackState(stateBuilder.build());
-                new NowPlayingCardUpdater(mPlaylist.getCurrentSong()).start();
+                new NowPlayingCardUpdater(mNowPlayingPlaylist.getCurrentSong()).start();
                 mMediaSessionCompat.setActive(true);
             }
         }
@@ -366,7 +343,7 @@ public class Player implements PlayerListener, Playlist.OnPlaylistUpdateListener
 
     @Override
     public void onPlaylistUpdate() {
-        new NowPlayingCardUpdater(mPlaylist.getCurrentSong()).start();
+        new NowPlayingCardUpdater(mNowPlayingPlaylist.getCurrentSong()).start();
     }
 
     @Override

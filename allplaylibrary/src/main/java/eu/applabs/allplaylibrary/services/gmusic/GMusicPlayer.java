@@ -3,18 +3,18 @@ package eu.applabs.allplaylibrary.services.gmusic;
 import android.app.Activity;
 import android.content.Intent;
 
+import javax.inject.Inject;
+
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 
 public class GMusicPlayer implements ServicePlayer {
 
-    private Activity mActivity = null;
+    @Inject
+    protected Activity mActivity;
 
-    @Override
-    public void initialize(Activity activity) {
-        mActivity = activity;
-
+    public GMusicPlayer() {
         GMusicLoginDialog ld = new GMusicLoginDialog(mActivity);
         ld.show();
     }

@@ -1,6 +1,7 @@
 package eu.applabs.allplaytv.adapter;
 
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,9 +15,14 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.Player;
-import eu.applabs.allplaylibrary.player.Playlist;
+import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
+import eu.applabs.allplaytv.AllPlayTVApplication;
 import eu.applabs.allplaytv.R;
 
 public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHolder> {
@@ -25,74 +31,68 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         void onPositionSelected(int position);
     }
 
-    private Playlist mPlayerPlaylist = Player.getInstance().getPlaylist();
-    private Context mContext;
+    @Inject
+    Context mContext;
+
+    private NowPlayingPlaylist mPlayerNowPlayingPlaylist = AllPlayLibrary.getInstance().getPlayer().getPlaylist();
     private ImageView mBackground;
     private List<Song> mSongList;
     private OnPositionSelectedListener mOnPositionSelectedListener;
 
-    public PlaylistAdapter(Context context, ImageView background, List<Song> list, OnPositionSelectedListener onPositionSelectedListener) {
-        mContext = context;
+    public PlaylistAdapter(ImageView background, List<Song> list, OnPositionSelectedListener onPositionSelectedListener) {
+        AllPlayTVApplication.component().inject(this);
+
         mBackground = background;
         mSongList = list;
         mOnPositionSelectedListener = onPositionSelectedListener;
     }
 
-    public void clearPlaylistAdapter() {
-        mPlayerPlaylist = null;
-        mSongList = null;
-
+    public void clearImages() {
         Glide.clear(mBackground);
-        mBackground = null;
-
         Glide.get(mContext).clearMemory();
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlistrow, parent, false);
-        ViewHolder vh = new ViewHolder(v);
-
-        return vh;
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.playlistrow, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if(position == mPlayerPlaylist.getCurrentSongIndex()) {
-            holder.m_CardView.bringToFront();
-            holder.m_LinearLayout.setBackgroundColor(mContext.getResources().getColor(R.color.accent));
+        if(position == mPlayerNowPlayingPlaylist.getCurrentSongIndex()) {
+            holder.mCardView.bringToFront();
+            holder.mLinearLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.accent));
 
-            // Clear the old image
-            Glide.clear(mBackground);
-            Glide.get(mContext).clearMemory();
+            clearImages();
 
             // Set the new image
             Glide.with(mContext)
-                    .load(mPlayerPlaylist.getPlaylistAsSongList().get(mPlayerPlaylist.getCurrentSongIndex()).getCoverSmall())
+                    .load(mPlayerNowPlayingPlaylist.getPlaylistAsSongList().get(mPlayerNowPlayingPlaylist.getCurrentSongIndex()).getCoverSmall())
                     .centerCrop()
-                    .error(mContext.getDrawable(R.drawable.nocover))
+                    .error(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                     .into(mBackground);
 
         } else {
-            holder.m_LinearLayout.setBackgroundColor(mContext.getResources().getColor(R.color.background));
+            holder.mLinearLayout.setBackgroundColor(mContext.getResources().getColor(R.color.background));
         }
 
-        holder.m_Title.setText(mSongList.get(position).getTitle());
-        holder.m_Artist.setText(mSongList.get(position).getArtist());
+        holder.mTitle.setText(mSongList.get(position).getTitle());
+        holder.mArtist.setText(mSongList.get(position).getArtist());
         holder.mOnPositionSelectedListener = mOnPositionSelectedListener;
 
         Glide.with(mContext)
                 .load(mSongList.get(position).getCoverSmall())
                 .centerCrop()
-                .error(mContext.getResources().getDrawable(R.drawable.nocover, null))
-                .into(holder.m_ImageView);
+                .error(ContextCompat.getDrawable(mContext, R.drawable.nocover))
+                .into(holder.mImageView);
     }
 
     @Override
     public void onViewDetachedFromWindow(ViewHolder holder) {
         super.onViewDetachedFromWindow(holder);
 
-        Glide.clear(holder.m_ImageView);
+        Glide.clear(holder.mImageView);
         Glide.get(mContext).clearMemory();
     }
 
@@ -112,27 +112,23 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        View m_View;
-
-        LinearLayout m_LinearLayout;
-        CardView m_CardView;
-        ImageView m_ImageView;
-        TextView m_Title;
-        TextView m_Artist;
+        @BindView(R.id.id_ll_PlaylistRow_LinearLayout)
+        LinearLayout mLinearLayout;
+        @BindView(R.id.id_cv_PlaylistRow_Card)
+        CardView mCardView;
+        @BindView(R.id.id_iv_PlaylistRow_Cover)
+        ImageView mImageView;
+        @BindView(R.id.id_tv_PlaylistRow_Title)
+        TextView mTitle;
+        @BindView(R.id.id_tv_PlaylistRow_Artist)
+        TextView mArtist;
 
         OnPositionSelectedListener mOnPositionSelectedListener;
 
-        public ViewHolder(View v) {
-            super(v);
-
-            m_View = v;
-            m_View.setOnClickListener(this);
-
-            m_LinearLayout = (LinearLayout) m_View.findViewById(R.id.id_ll_PlaylistRow_LinearLayout);
-            m_CardView = (CardView) m_View.findViewById(R.id.id_cv_PlaylistRow_Card);
-            m_ImageView = (ImageView) m_View.findViewById(R.id.id_iv_PlaylistRow_Cover);
-            m_Title = (TextView) m_View.findViewById(R.id.id_tv_PlaylistRow_Title);
-            m_Artist = (TextView) m_View.findViewById(R.id.id_tv_PlaylistRow_Artist);
+        public ViewHolder(View view) {
+            super(view);
+            ButterKnife.bind(this, view);
+            view.setOnClickListener(this);
         }
 
         @Override

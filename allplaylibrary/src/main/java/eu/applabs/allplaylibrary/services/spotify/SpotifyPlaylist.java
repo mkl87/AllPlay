@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.Song;
@@ -25,16 +28,16 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class SpotifyPlaylist implements ServicePlaylist {
+public class SpotifyPlaylist extends ServicePlaylist {
 
-    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
+    @Inject
+    protected MusicLibrary mMusicLibrary;
+
     private SpotifyService mSpotifyService;
     private String mName;
     private String mCoverUrl;
     private String mOwner;
     private String mId;
-    private List<Song> mSongList = new ArrayList<>();
-    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new ArrayList<>();
 
     private CallbackAlbum mCallbackAlbum = new CallbackAlbum();
     private CallbackPlaylist mCallbackPlaylist = new CallbackPlaylist();
@@ -43,6 +46,8 @@ public class SpotifyPlaylist implements ServicePlaylist {
     private CallbackArtistTopTracks mCallbackArtistTopTracks = new CallbackArtistTopTracks();
 
     public SpotifyPlaylist(SpotifyService service, String name, String owner, String id, List<Image> images) {
+        AllPlayLibrary.getInstance().component().inject(this);
+
         mSpotifyService = service;
         mName = name;
         mOwner = owner;
@@ -138,42 +143,13 @@ public class SpotifyPlaylist implements ServicePlaylist {
     }
 
     @Override
-    public void clearPlaylist() {
-        mSongList.clear();
-    }
-
-    @Override
     public String getPlaylistName() {
         return mName;
     }
 
     @Override
-    public int getSize() {
-        if(mSongList != null) {
-            return mSongList.size();
-        }
-
-        return 0;
-    }
-
-    @Override
     public String getCoverUrl() {
         return mCoverUrl;
-    }
-
-    @Override
-    public List<Song> getPlaylist() {
-        return mSongList;
-    }
-
-    @Override
-    public void registerListener(OnPlaylistUpdateListener listener) {
-        mOnPlaylistUpdateListenerList.add(listener);
-    }
-
-    @Override
-    public void unregisterListener(OnPlaylistUpdateListener listener) {
-        mOnPlaylistUpdateListenerList.remove(listener);
     }
 
     public class CallbackPlaylistTracks implements Callback<Pager<PlaylistTrack>> {
@@ -368,14 +344,6 @@ public class SpotifyPlaylist implements ServicePlaylist {
         @Override
         public void failure(RetrofitError retrofitError) {
 
-        }
-    }
-
-    private void notifyListener() {
-        for (OnPlaylistUpdateListener listener : mOnPlaylistUpdateListenerList) {
-            if(listener != null) {
-                listener.onPlaylistUpdate();
-            }
         }
     }
 }

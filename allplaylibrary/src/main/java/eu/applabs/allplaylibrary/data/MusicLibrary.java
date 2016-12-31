@@ -10,26 +10,25 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
         void onMusicLibraryUpdate();
     }
 
-    private static MusicLibrary mMusicLibrary;
+    private List<ServiceLibrary> mServiceLibraryList = new ArrayList<>();
+    private List<OnMusicLibraryUpdateListener> mOnMusicLibraryUpdateListenerList = new ArrayList<>();
 
-    private List<ServiceLibrary> mServiceLibraryList;
-    private List<OnMusicLibraryUpdateListener> mOnMusicLibraryUpdateListenerList;
+    public MusicLibrary() {
 
-    // Private (Singelton)
-    private MusicLibrary() {}
-
-    public static synchronized MusicLibrary getInstance() {
-        if(MusicLibrary.mMusicLibrary == null) {
-            MusicLibrary.mMusicLibrary = new MusicLibrary();
-            MusicLibrary.mMusicLibrary.mServiceLibraryList = new ArrayList<>();
-            MusicLibrary.mMusicLibrary.mOnMusicLibraryUpdateListenerList = new ArrayList<>();
-        }
-
-        return MusicLibrary.mMusicLibrary;
     }
 
     public void clearLibrary() {
         for(ServiceLibrary library : mServiceLibraryList) {
+
+            // Unregister from category and playlist updates
+            for(ServiceCategory serviceCategory : library.getCategories()) {
+                serviceCategory.unregisterListener(this);
+
+                for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+                    servicePlaylist.unregisterListener(this);
+                }
+            }
+
             library.clearLibrary();
         }
 
@@ -48,11 +47,31 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
     }
 
     public void addMusicLibrary(ServiceLibrary library) {
+
+        // Register for category and playlist updates
+        for(ServiceCategory serviceCategory : library.getCategories()) {
+            serviceCategory.registerListener(this);
+
+            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+                servicePlaylist.registerListener(this);
+            }
+        }
+
         mServiceLibraryList.add(library);
         notifyMLU();
     }
 
     public void removeMusicLibrary(ServiceLibrary library) {
+
+        // Unregister from category and playlist updates
+        for(ServiceCategory serviceCategory : library.getCategories()) {
+            serviceCategory.unregisterListener(this);
+
+            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+                servicePlaylist.unregisterListener(this);
+            }
+        }
+
         mServiceLibraryList.remove(library);
         notifyMLU();
     }

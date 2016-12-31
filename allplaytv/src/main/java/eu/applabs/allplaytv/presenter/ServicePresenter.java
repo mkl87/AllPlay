@@ -1,6 +1,5 @@
 package eu.applabs.allplaytv.presenter;
 
-import android.graphics.drawable.Drawable;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v4.content.ContextCompat;
@@ -14,19 +13,18 @@ import eu.applabs.allplaytv.R;
 
 public class ServicePresenter extends Presenter {
 
-    private static int CARD_WIDTH = 400;
-    private static int CARD_HEIGHT = 400;
+    private static final int CARD_WIDTH = 400;
+    private static final int CARD_HEIGHT = 400;
+
     private static int SELECTED_BACKGROUND = 0;
     private static int DEFAULT_BACKGROUND = 0;
-
-    private Drawable mDefaultCardImage;
 
     private ViewGroup mParent;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
         mParent = parent;
-        mDefaultCardImage = ContextCompat.getDrawable(mParent.getContext(), R.drawable.ic_action_person);
+
         SELECTED_BACKGROUND = ContextCompat.getColor(mParent.getContext(), R.color.accent);
         DEFAULT_BACKGROUND = ContextCompat.getColor(mParent.getContext(), R.color.primary);
 

@@ -36,8 +36,6 @@ public interface ServicePlayer {
         Error
     }
 
-    // Methods for initialization
-    void initialize(Activity activity);
     void clearPlayer();
 
     // Methods to login

@@ -2,6 +2,7 @@ package eu.applabs.allplaylibrary.services.deezer;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -26,8 +27,12 @@ import com.deezer.sdk.player.networkcheck.WifiAndMobileNetworkStateChecker;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.ServiceLibrary;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
@@ -36,30 +41,30 @@ import eu.applabs.allplaylibrary.player.Player;
 public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPlayerProgressListener, OnPlayerStateChangeListener {
 
     private State mState;
-    private DeezerService mDeezerService;
+    private ServiceLibrary mDeezerService = new ServiceLibrary();
     private DeezerCategory mDeezerCategoryPlaylists;
     private DeezerCategory mDeezerCategoryAlbums;
     private DeezerCategory mDeezerCategoryOwnCharts;
-    private MusicLibrary mMusicLibrary = MusicLibrary.getInstance();
-    private Player mPlayer = Player.getInstance();
     private boolean mTrackEndBroadcastEnabled = true;
-
-    private Activity mActivity;
     private DeezerConnect mDeezerConnect;
     private SessionStore mSessionStore = new SessionStore();
     private List<PlayerListener> mPlayerListenerList;
     private com.deezer.sdk.player.Player mDeezerPlayer;
 
+    @Inject
+    protected MusicLibrary mMusicLibrary;
+
+    @Inject
+    protected Player mPlayer;
+
+    @Inject
+    protected Activity mActivity;
+
     public DeezerPlayer() {
+        AllPlayLibrary.getInstance().component().inject(this);
         mPlayerListenerList = new ArrayList<>();
         mState = State.Idle;
-    }
-
-    @Override
-    public void initialize(Activity activity) {
-        mActivity = activity;
         mDeezerConnect = new DeezerConnect(mActivity.getApplication(), mActivity.getString(R.string.deezer_application_id));
-        mPlayer.initialize(mActivity);
     }
 
     @Override
@@ -273,7 +278,6 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
             e.printStackTrace();
         }
 
-        mDeezerService = new DeezerService();
         mDeezerCategoryPlaylists = new DeezerCategory(mActivity.getString(R.string.category_playlists));
         mDeezerCategoryAlbums = new DeezerCategory(mActivity.getString(R.string.category_albums));
         mDeezerCategoryOwnCharts = new DeezerCategory(mActivity.getString(R.string.category_own_charts));
