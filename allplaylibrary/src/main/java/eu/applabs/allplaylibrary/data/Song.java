@@ -1,6 +1,5 @@
 package eu.applabs.allplaylibrary.data;
 
-import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class Song {

@@ -1,11 +1,12 @@
 package eu.applabs.allplaylibrary.player;
 
-import android.app.Activity;
+import android.content.Context;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.ServiceLibrary;
 import eu.applabs.allplaylibrary.data.ServiceCategory;
@@ -16,23 +17,27 @@ import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class NowPlayingPlaylist extends ServicePlaylist {
 
-    private Activity mActivity;
+    @Inject
+    protected Context mContext;
+
+    @Inject
+    protected MusicLibrary mMusicLibrary;
+
     private int mCurrentIndex = 0;
 
-    private NowPlayingServiceLibrary mNowPlayingServiceLibrary = new NowPlayingServiceLibrary();
-    private NowPlayingCategory mNowPlayingCategory = new NowPlayingCategory();
-    private MusicLibrary mMusicLibrary;
+    private ServiceCategory mServiceCategory;
 
-    public NowPlayingPlaylist(Activity activity, MusicLibrary musicLibrary) {
-        mActivity = activity;
-        mMusicLibrary = musicLibrary;
+    public NowPlayingPlaylist() {
+        AllPlayLibrary.getInstance().component().inject(this);
+        mServiceCategory = new ServiceCategory(mContext.getString(R.string.category_currentplayback));
 
-        mNowPlayingServiceLibrary.addCategory(mNowPlayingCategory);
-        mMusicLibrary.addMusicLibrary(mNowPlayingServiceLibrary);
+        NowPlayingServiceLibrary nowPlayingServiceLibrary = new NowPlayingServiceLibrary();
+        nowPlayingServiceLibrary.addCategory(mServiceCategory);
+        mMusicLibrary.addMusicLibrary(nowPlayingServiceLibrary);
     }
 
     public void setPlaylist(List<Song> list) {
-        mNowPlayingCategory.addPlaylist(this);
+        mServiceCategory.addPlaylist(this);
 
         if(list != null && list.size() > 0) {
             clear();
@@ -65,7 +70,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
     }
 
     public void clear() {
-        mNowPlayingCategory.clearCategory();
+        mServiceCategory.clearCategory();
 
         if(mSongList != null) {
             mCurrentIndex = 0;
@@ -144,12 +149,4 @@ public class NowPlayingPlaylist extends ServicePlaylist {
 
     }
 
-    private class NowPlayingCategory extends ServiceCategory {
-
-        @Override
-        public String getCategoryName() {
-            return mActivity.getString(R.string.category_currentplayback);
-        }
-
-    }
 }

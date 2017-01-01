@@ -2,17 +2,20 @@ package eu.applabs.allplaylibrary;
 
 import android.app.Activity;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import dagger.Component;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.data.SettingsManager;
+import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
-import eu.applabs.allplaylibrary.services.deezer.DeezerCategory;
+import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlaylist;
-import eu.applabs.allplaylibrary.services.spotify.SpotifyCategory;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlayer;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlaylist;
 
@@ -22,13 +25,14 @@ public class AllPlayLibrary {
     @Component(modules = BaseModule.class)
     public interface ApplicationComponent {
         void inject(AllPlayLibrary allPlayLibrary);
+        void inject(NowPlayingPlaylist nowPlayingPlaylist);
+        void inject(Player player);
         void inject(ServiceCategory serviceCategory);
+        void inject(SettingsManager settingsManager);
 
-        void inject(SpotifyCategory spotifyCategory);
         void inject(SpotifyPlayer spotifyPlayer);
         void inject(SpotifyPlaylist spotifyPlaylist);
 
-        void inject(DeezerCategory deezerCategory);
         void inject(DeezerPlayer deezerPlayer);
         void inject(DeezerPlaylist deezerPlaylist);
     }
@@ -43,6 +47,9 @@ public class AllPlayLibrary {
 
     @Inject
     Player mPlayer;
+
+    @Inject
+    SettingsManager mSettingsManager;
 
     // Private (Singelton)
     private AllPlayLibrary() {}
@@ -85,5 +92,9 @@ public class AllPlayLibrary {
 
     public MusicLibrary getMusicLibrary() {
         return mMusicLibrary;
+    }
+
+    public List<ServiceType> getConnectedServiceTypes() {
+        return mSettingsManager.getConnectedServiceTypes();
     }
 }

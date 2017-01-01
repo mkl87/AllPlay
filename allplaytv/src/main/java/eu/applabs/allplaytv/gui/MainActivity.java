@@ -225,13 +225,7 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
         manageAccounts.setIcon(getResources().getDrawable(R.drawable.banner, null));
         manageAccounts.setIntent(new Intent(mActivity, ManageAccountsActivity.class));
 
-        Action voiceRecord = new Action();
-        voiceRecord.setName("VoiceRecord");
-        voiceRecord.setIcon(getResources().getDrawable(R.drawable.banner, null));
-        voiceRecord.setIntent(new Intent(mActivity, SearchActivity.class));
-
         mActionAdapter.add(manageAccounts);
-        mActionAdapter.add(voiceRecord);
 
         addActionAdapter();
     }

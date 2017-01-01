@@ -16,8 +16,10 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.data.Song;
@@ -29,30 +31,30 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
 
     private static final String TAG = Player.class.getSimpleName();
 
-    private Activity mActivity;
-    private SettingsManager mSettingsManager;
+    @Inject
+    protected Activity mActivity;
 
-    private List<ServicePlayer> mServicePlayerList;
+    @Inject
+    protected MusicLibrary mMusicLibrary;
+
+    @Inject
+    protected SettingsManager mSettingsManager;
+
+    @Inject
+    protected NowPlayingPlaylist mNowPlayingPlaylist;
+
+    private List<ServicePlayer> mServicePlayerList = new ArrayList<>();
     private ServicePlayer mActiveServicePlayer;
     private boolean mMediaSessionCompatInitialized = false;
     private MediaSessionCompat mMediaSessionCompat;
 
-    private List<PlayerListener> mPlayerListenerList;
+    private List<PlayerListener> mPlayerListenerList = new ArrayList<>();
 
-    private NowPlayingPlaylist mNowPlayingPlaylist;
-
-    public Player(Activity activity, MusicLibrary musicLibrary) {
-        mActivity = activity;
-        mServicePlayerList = new ArrayList<>();
-        mPlayerListenerList = new ArrayList<>();
-
-        mNowPlayingPlaylist = new NowPlayingPlaylist(mActivity, musicLibrary);
+    public Player() {
+        AllPlayLibrary.getInstance().component().inject(this);
         mNowPlayingPlaylist.registerListener(this);
 
-        mSettingsManager = SettingsManager.getInstance();
-        mSettingsManager.initialize(mActivity);
-
-        for(ServiceType serviceType : mSettingsManager.getConnectedServices()) {
+        for(ServiceType serviceType : mSettingsManager.getConnectedServiceTypes()) {
             login(serviceType);
         }
     }
@@ -117,7 +119,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         }
 
         if(player != null) {
-            List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+            List<ServiceType> connectedServices = mSettingsManager.getConnectedServiceTypes();
             connectedServices.remove(player.getServiceType());
             mSettingsManager.setConnectedServices(connectedServices);
 
@@ -262,7 +264,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
 
     @Override
     public void onLoginSuccess(ServiceType type) {
-        List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+        List<ServiceType> connectedServices = mSettingsManager.getConnectedServiceTypes();
         connectedServices.add(type);
         mSettingsManager.setConnectedServices(connectedServices);
 
@@ -273,7 +275,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
 
     @Override
     public void onLoginError(ServiceType type) {
-        List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+        List<ServiceType> connectedServices = mSettingsManager.getConnectedServiceTypes();
         connectedServices.remove(type);
         mSettingsManager.setConnectedServices(connectedServices);
 

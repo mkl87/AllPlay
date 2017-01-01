@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
 import eu.applabs.allplaylibrary.data.ServiceLibrary;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.player.PlayerListener;
@@ -43,9 +44,9 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     private State mState;
     private DeezerService mDeezerService = new DeezerService();
-    private DeezerCategory mDeezerCategoryPlaylists;
-    private DeezerCategory mDeezerCategoryAlbums;
-    private DeezerCategory mDeezerCategoryOwnCharts;
+    private ServiceCategory mDeezerCategoryPlaylists;
+    private ServiceCategory mDeezerCategoryAlbums;
+    private ServiceCategory mDeezerCategoryOwnCharts;
     private boolean mTrackEndBroadcastEnabled = true;
     private DeezerConnect mDeezerConnect;
     private SessionStore mSessionStore = new SessionStore();
@@ -279,9 +280,9 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
             e.printStackTrace();
         }
 
-        mDeezerCategoryPlaylists = new DeezerCategory(mActivity.getString(R.string.category_playlists));
-        mDeezerCategoryAlbums = new DeezerCategory(mActivity.getString(R.string.category_albums));
-        mDeezerCategoryOwnCharts = new DeezerCategory(mActivity.getString(R.string.category_own_charts));
+        mDeezerCategoryPlaylists = new ServiceCategory(mActivity.getString(R.string.category_playlists));
+        mDeezerCategoryAlbums = new ServiceCategory(mActivity.getString(R.string.category_albums));
+        mDeezerCategoryOwnCharts = new ServiceCategory(mActivity.getString(R.string.category_own_charts));
 
         mDeezerService.addCategory(mDeezerCategoryPlaylists);
         mDeezerService.addCategory(mDeezerCategoryAlbums);

@@ -9,40 +9,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.inject.Inject;
+
+import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class SettingsManager {
 
-    private static SettingsManager mSettingsManager;
-    private static boolean mIsInitialized = false;
-
     private static final String TAG = SettingsManager.class.getSimpleName();
     private static final String KEY_CONNECTED_SERVICES = TAG + ".ConnectedServices";
 
-    private Context mContext;
+    @Inject
+    protected Context mContext;
+
     private SharedPreferences mSharedPreferences;
 
-    private SettingsManager() {}
+    public SettingsManager() {
+        AllPlayLibrary.getInstance().component().inject(this);
 
-    public static synchronized SettingsManager getInstance() {
-        if(SettingsManager.mSettingsManager == null) {
-            SettingsManager.mSettingsManager = new SettingsManager();
-        }
-
-        return SettingsManager.mSettingsManager;
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
     }
-
-    public boolean initialize(Context context) {
-        if(!SettingsManager.mIsInitialized && context != null) {
-            mContext = context;
-            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-            SettingsManager.mIsInitialized = true;
-        }
-
-        return SettingsManager.mIsInitialized;
-    }
-
-    // Setter
 
     public void setConnectedServices(List<ServiceType> connectedServices) {
         Set<String> connectedServiceSet = new HashSet<>();
@@ -64,9 +50,7 @@ public class SettingsManager {
         editor.apply();
     }
 
-    // Getter
-
-    public List<ServiceType> getConnectedServices() {
+    public List<ServiceType> getConnectedServiceTypes() {
         Set<String> connectedServices = mSharedPreferences.getStringSet(KEY_CONNECTED_SERVICES, new HashSet<String>());
         List<ServiceType> returnValues = new ArrayList<>();
 

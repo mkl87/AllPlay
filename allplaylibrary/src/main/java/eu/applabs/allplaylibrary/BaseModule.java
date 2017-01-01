@@ -8,6 +8,8 @@ import javax.inject.Singleton;
 import dagger.Module;
 import dagger.Provides;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.SettingsManager;
+import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
 
 @Module
@@ -25,14 +27,31 @@ public class BaseModule {
     }
 
     @Provides
+    Context provideContext(Activity activity) {
+        return activity;
+    }
+
+    @Provides
     @Singleton
-    Player providePlayer(MusicLibrary musicLibrary) {
-        return new Player(mAllPlayLibrary.getActivity(), musicLibrary);
+    Player providePlayer() {
+        return new Player();
+    }
+
+    @Provides
+    @Singleton
+    NowPlayingPlaylist provideNowPlayingPlaylist() {
+        return new NowPlayingPlaylist();
     }
 
     @Provides
     @Singleton
     MusicLibrary provideMusicLibrary() {
         return new MusicLibrary();
+    }
+
+    @Provides
+    @Singleton
+    SettingsManager provideSettingsManager() {
+        return new SettingsManager();
     }
 }

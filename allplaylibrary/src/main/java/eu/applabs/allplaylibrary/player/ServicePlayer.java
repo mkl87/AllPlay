@@ -28,6 +28,7 @@ public interface ServicePlayer {
 
     /**
      * Method to check if the method was triggered by the authentication request
+     *
      * @param requestCode Request Code
      * @param resultCode Result Code
      * @param intent Intent with information

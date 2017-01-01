@@ -9,7 +9,7 @@ import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 
-public abstract class ServiceCategory {
+public class ServiceCategory {
 
     interface OnCategoryUpdateListener {
         void onCategoryUpdate();
@@ -18,19 +18,18 @@ public abstract class ServiceCategory {
     @Inject
     protected MusicLibrary mMusicLibrary;
 
+    private String mName;
     private List<OnCategoryUpdateListener> mOnCategoryUpdateListenerList = new ArrayList<>();
     private List<ServicePlaylist> mServicePlaylists = new ArrayList<>();
 
-    public ServiceCategory() {
+    public ServiceCategory(String name) {
         AllPlayLibrary.getInstance().component().inject(this);
+        mName = name;
     }
 
-    /**
-     * Abstract method to specify the name of the category
-     *
-     * @return String (Example: Favorites)
-     */
-    public abstract String getCategoryName();
+    public String getCategoryName() {
+        return mName;
+    }
 
     public void clearCategory() {
         for(ServicePlaylist playlist : mServicePlaylists) {

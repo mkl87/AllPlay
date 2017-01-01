@@ -14,6 +14,7 @@ import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
 import android.support.v17.leanback.widget.Presenter;
+import android.support.v17.leanback.widget.PresenterSelector;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v4.content.ContextCompat;
@@ -32,13 +33,13 @@ import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
+import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
 import eu.applabs.allplaytv.presenter.ServicePresenter;
 
 public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, PlayerListener {
 
     private FragmentManager mFragmentManager;
     private BrowseFragment mBrowseFragment;
-    private SettingsManager mSettingsManager;
     private ArrayObjectAdapter mManageAccountAdapter;
 
     private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
@@ -51,13 +52,17 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_manageaccounts);
 
-        mSettingsManager = SettingsManager.getInstance();
-        mSettingsManager.initialize(this);
-
         mFragmentManager = getFragmentManager();
         mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_ManageAccounts);
 
         mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+        mBrowseFragment.setHeaderPresenterSelector(new PresenterSelector() {
+            @Override
+            public Presenter getPresenter(Object item) {
+                return new IconHeaderItemPresenter();
+            }
+        });
+
         mBrowseFragment.setTitle(getString(R.string.app_name));
         mBrowseFragment.setOnItemViewClickedListener(this);
 
@@ -102,13 +107,13 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                     // Connected services
 
                     ArrayObjectAdapter connectedServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
-                    List<ServiceType> connectedServices = mSettingsManager.getConnectedServices();
+                    List<ServiceType> connectedServices = AllPlayLibrary.getInstance().getConnectedServiceTypes();
                     for(ServiceType serviceType : connectedServices) {
                         connectedServiceAdapter.add(serviceType);
                         mConnectedServices.add(serviceType);
                     }
 
-                    HeaderItem connectedServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_connectedservices));
+                    IconHeaderItem connectedServicesHeader = new IconHeaderItem(getResources().getString(R.string.manageaccountsactivity_category_connectedservices), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_connectedservices));
                     mManageAccountAdapter.add(new ListRow(connectedServicesHeader, connectedServiceAdapter));
 
                     // Available services
@@ -130,7 +135,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
                         mAvailableServices.add(ServiceType.DEEZER);
                     }
 
-                    HeaderItem availableServicesHeader = new HeaderItem(getResources().getString(R.string.manageaccountsactivity_category_availableservices));
+                    IconHeaderItem availableServicesHeader = new IconHeaderItem(getResources().getString(R.string.manageaccountsactivity_category_availableservices), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_availableservices));
                     mManageAccountAdapter.add(new ListRow(availableServicesHeader, availableServiceAdapter));
                 }
             }

@@ -26,6 +26,7 @@ import javax.inject.Inject;
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
 import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.ServiceCategory;
 import eu.applabs.allplaylibrary.player.PlayerListener;
 import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.data.Song;
@@ -61,10 +62,10 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     protected Activity mActivity;
 
     private SpotifyServiceWrapper mSpotifyServiceWrapper;
-    private SpotifyCategory mSpotifyCategoryPlaylists;
-    private SpotifyCategory mSpotifyCategoryAlbums;
-    private SpotifyCategory mSpotifyCategoryArtists;
-    private SpotifyCategory mSpotifyCategorySongs;
+    private ServiceCategory mSpotifyCategoryPlaylists;
+    private ServiceCategory mSpotifyCategoryAlbums;
+    private ServiceCategory mSpotifyCategoryArtists;
+    private ServiceCategory mSpotifyCategorySongs;
 
     private Thread m_SpotifyPlaybackPositionCheckerThread;
     private SpotifyPlaybackPositionChecker m_SpotifyPlaybackPositionChecker;
@@ -378,10 +379,10 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     private void addMusicLibrary() {
         mSpotifyServiceWrapper = new SpotifyServiceWrapper(mActivity);
 
-        mSpotifyCategoryPlaylists = new SpotifyCategory(mActivity.getResources().getString(R.string.category_playlists));
-        mSpotifyCategoryAlbums = new SpotifyCategory(mActivity.getResources().getString(R.string.category_albums));
-        mSpotifyCategoryArtists = new SpotifyCategory(mActivity.getResources().getString(R.string.category_artists));
-        mSpotifyCategorySongs = new SpotifyCategory(mActivity.getResources().getString(R.string.category_songs));
+        mSpotifyCategoryPlaylists = new ServiceCategory(mActivity.getResources().getString(R.string.category_playlists));
+        mSpotifyCategoryAlbums = new ServiceCategory(mActivity.getResources().getString(R.string.category_albums));
+        mSpotifyCategoryArtists = new ServiceCategory(mActivity.getResources().getString(R.string.category_artists));
+        mSpotifyCategorySongs = new ServiceCategory(mActivity.getResources().getString(R.string.category_songs));
 
         mSpotifyServiceWrapper.addCategory(mSpotifyCategoryPlaylists);
         mSpotifyServiceWrapper.addCategory(mSpotifyCategoryAlbums);
