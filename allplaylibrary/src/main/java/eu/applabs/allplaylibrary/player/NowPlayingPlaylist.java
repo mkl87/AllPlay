@@ -8,10 +8,11 @@ import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
-import eu.applabs.allplaylibrary.data.ServiceLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
-import eu.applabs.allplaylibrary.data.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.services.ServiceLibrary;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
@@ -21,7 +22,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
     protected Context mContext;
 
     @Inject
-    protected MusicLibrary mMusicLibrary;
+    protected MusicCatalog mMusicCatalog;
 
     private int mCurrentIndex = 0;
 
@@ -33,7 +34,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
 
         NowPlayingServiceLibrary nowPlayingServiceLibrary = new NowPlayingServiceLibrary();
         nowPlayingServiceLibrary.addCategory(mServiceCategory);
-        mMusicLibrary.addMusicLibrary(nowPlayingServiceLibrary);
+        mMusicCatalog.addMusicLibrary(nowPlayingServiceLibrary);
     }
 
     public void setPlaylist(List<Song> list) {
@@ -49,7 +50,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
             }
         }
 
-        notifyListener();
+        notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
     }
 
     public void remove(Song song) {
@@ -66,7 +67,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
             }
         }
 
-        notifyListener();
+        notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
     }
 
     public void clear() {
@@ -77,7 +78,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
             mSongList.clear();
         }
 
-        notifyListener();
+        notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
     }
 
     public List<Song> getPlaylistAsSongList() {
@@ -99,7 +100,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
     public Song getPrevSong() {
         if(mSongList != null && mCurrentIndex > 0) {
             mCurrentIndex--;
-            notifyListener();
+            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
 
             return mSongList.get(mCurrentIndex);
         }
@@ -110,7 +111,7 @@ public class NowPlayingPlaylist extends ServicePlaylist {
     public Song getNextSong() {
         if(mSongList != null && mSongList.size() > mCurrentIndex + 1) {
             mCurrentIndex++;
-            notifyListener();
+            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
 
             return mSongList.get(mCurrentIndex);
         }

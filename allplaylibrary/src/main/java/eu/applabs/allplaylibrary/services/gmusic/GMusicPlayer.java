@@ -6,11 +6,10 @@ import android.content.Intent;
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.PlayerListener;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
-public class GMusicPlayer implements ServicePlayer {
+public class GMusicPlayer extends ServicePlayer {
 
     @Inject
     protected Activity mActivity;
@@ -26,7 +25,7 @@ public class GMusicPlayer implements ServicePlayer {
     }
 
     @Override
-    public void login() {
+    public void login(Activity activity) {
 
     }
 
@@ -41,7 +40,7 @@ public class GMusicPlayer implements ServicePlayer {
     }
 
     @Override
-    public State getPlayerState() {
+    public PlayerState getPlayerState() {
         return null;
     }
 
@@ -70,13 +69,4 @@ public class GMusicPlayer implements ServicePlayer {
         return false;
     }
 
-    @Override
-    public void registerListener(PlayerListener listener) {
-
-    }
-
-    @Override
-    public void unregisterListener(PlayerListener listener) {
-
-    }
 }

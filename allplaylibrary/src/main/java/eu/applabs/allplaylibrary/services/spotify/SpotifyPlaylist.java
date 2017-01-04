@@ -1,6 +1,5 @@
 package eu.applabs.allplaylibrary.services.spotify;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +7,10 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;
@@ -32,7 +31,7 @@ import retrofit.client.Response;
 public class SpotifyPlaylist extends ServicePlaylist {
 
     @Inject
-    protected MusicLibrary mMusicLibrary;
+    protected MusicCatalog mMusicCatalog;
 
     private SpotifyService mSpotifyService;
     private String mName;
@@ -60,7 +59,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
             mCoverUrl = "";
         }
 
-        registerListener(mMusicLibrary);
+        addObserver(mMusicCatalog);
     }
 
     public void addSavedTrack(SavedTrack savedtrack) {
@@ -89,7 +88,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
             }
 
             mSongList.add(song);
-            notifyListener();
+            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
         }
     }
 
@@ -119,7 +118,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
             }
 
             mSongList.add(song);
-            notifyListener();
+            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
         }
     }
 
@@ -159,31 +158,34 @@ public class SpotifyPlaylist extends ServicePlaylist {
         public void success(Pager<PlaylistTrack> playlistTrackPager, Response response) {
             if(playlistTrackPager != null && playlistTrackPager.items != null) {
                 for(PlaylistTrack ptrack : playlistTrackPager.items) {
-                    Song song = new Song();
                     Track track = ptrack.track;
 
-                    song.setTitle(track.name);
-                    song.setUri(track.uri);
-                    song.setServiceType(ServiceType.SPOTIFY);
+                    if(track != null) {
+                        Song song = new Song();
 
-                    List<ArtistSimple> artists = track.artists;
-                    if (artists.size() > 0) {
-                        song.setArtist(artists.get(0).name);
-                        song.setArtistUri(artists.get(0).uri);
-                    }
+                        song.setTitle(track.name);
+                        song.setUri(track.uri);
+                        song.setServiceType(ServiceType.SPOTIFY);
 
-                    for (Image image : track.album.images) {
-                        switch (image.width) {
-                            case 640:
-                                song.setCoverBig(image.url);
-                                break;
-                            case 300:
-                                song.setCoverSmall(image.url);
-                                break;
+                        List<ArtistSimple> artists = track.artists;
+                        if (artists.size() > 0) {
+                            song.setArtist(artists.get(0).name);
+                            song.setArtistUri(artists.get(0).uri);
                         }
-                    }
 
-                    mSongList.add(song);
+                        for (Image image : track.album.images) {
+                            switch (image.width) {
+                                case 640:
+                                    song.setCoverBig(image.url);
+                                    break;
+                                case 300:
+                                    song.setCoverSmall(image.url);
+                                    break;
+                            }
+                        }
+
+                        mSongList.add(song);
+                    }
                 }
 
                 if(playlistTrackPager.next != null && mId != null && mOwner != null) {
@@ -193,7 +195,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
                     mSpotifyService.getPlaylistTracks(mOwner, mId, optionMap, getCallbackPlaylistTracks());
                 } else {
-                    notifyListener();
+                    notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
                 }
             }
         }
@@ -236,7 +238,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
                     mSongList.add(song);
                 }
 
-                notifyListener();
+                notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
             }
         }
 
@@ -277,7 +279,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
                     mSongList.add(song);
                 }
 
-                notifyListener();
+                notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
             }
         }
 
@@ -338,7 +340,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
                     mSongList.add(song);
                 }
 
-                notifyListener();
+                notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
             }
         }
 

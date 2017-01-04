@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
-import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
@@ -24,19 +23,20 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Observable;
+import java.util.Observer;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.SettingsManager;
-import eu.applabs.allplaylibrary.player.PlayerListener;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.event.ServiceConnectionEvent;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
 import eu.applabs.allplaytv.presenter.ServicePresenter;
 
-public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, PlayerListener {
+public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, Observer {
 
     private FragmentManager mFragmentManager;
     private BrowseFragment mBrowseFragment;
@@ -73,17 +73,17 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
         mManageAccountAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         mBrowseFragment.setAdapter(mManageAccountAdapter);
 
-        mPlayer.registerListener(this);
+        mPlayer.addObserver(this);
 
         updateUI();
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-
-        mPlayer.unregisterListener(this);
+        mPlayer.deleteObserver(this);
         Glide.get(this).clearMemory();
+
+        super.onDestroy();
     }
 
     @Override
@@ -120,17 +120,17 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
                     ArrayObjectAdapter availableServiceAdapter = new ArrayObjectAdapter(new ServicePresenter());
 
-                    if(!connectedServices.contains(String.valueOf(ServiceType.GOOGLE_MUSIC))) {
+                    if(!connectedServices.contains(ServiceType.GOOGLE_MUSIC)) {
                         availableServiceAdapter.add(ServiceType.GOOGLE_MUSIC);
                         mAvailableServices.add(ServiceType.GOOGLE_MUSIC);
                     }
 
-                    if(!connectedServices.contains(String.valueOf(ServiceType.SPOTIFY))) {
+                    if(!connectedServices.contains(ServiceType.SPOTIFY)) {
                         availableServiceAdapter.add(ServiceType.SPOTIFY);
                         mAvailableServices.add(ServiceType.SPOTIFY);
                     }
 
-                    if(!connectedServices.contains(String.valueOf(ServiceType.DEEZER))) {
+                    if(!connectedServices.contains(ServiceType.DEEZER)) {
                         availableServiceAdapter.add(ServiceType.DEEZER);
                         mAvailableServices.add(ServiceType.DEEZER);
                     }
@@ -149,7 +149,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
             final Player player = AllPlayLibrary.getInstance().getPlayer();
 
             if(mAvailableServices.contains(type)) {
-                if(!player.login(type)) {
+                if(!player.login(this, type)) {
                     Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_commingsoon), Toast.LENGTH_SHORT).show();
                 }
             } else {
@@ -172,37 +172,18 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     }
 
     @Override
-    public void onPlayerStateChanged(ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
-        // Nothing to do..
-    }
+    public void update(Observable observable, Object o) {
+        if(o instanceof Event) {
+            Event event = (Event) o;
 
-    @Override
-    public void onPlayerEvent(ServicePlayer.Event event) {
-        // Nothing to do..
-    }
+            if(event instanceof ServiceConnectionEvent) {
+                ServiceConnectionEvent serviceConnectionEvent = (ServiceConnectionEvent) event;
 
-    @Override
-    public void onLoginSuccess(ServiceType type) {
-        updateUI();
-    }
-
-    @Override
-    public void onLoginError(ServiceType type) {
-        Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_loginerror), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onLogoutSuccess(ServiceType type) {
-        updateUI();
-    }
-
-    @Override
-    public void onLogoutError(ServiceType type) {
-        Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_logouterror), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onPlayerPlaybackPositionChanged(int position) {
-        // Nothing to do..
+                if(serviceConnectionEvent.getServiceConnectionEventType() == ServiceConnectionEvent.ServiceConnectionEventType.CONNECTED
+                        || serviceConnectionEvent.getServiceConnectionEventType() == ServiceConnectionEvent.ServiceConnectionEventType.DISCONNECTED) {
+                    updateUI();
+                }
+            }
+        }
     }
 }

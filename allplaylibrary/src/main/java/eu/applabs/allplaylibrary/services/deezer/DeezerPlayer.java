@@ -2,9 +2,7 @@ package eu.applabs.allplaylibrary.services.deezer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.deezer.sdk.model.Album;
 import com.deezer.sdk.model.Permissions;
@@ -21,28 +19,27 @@ import com.deezer.sdk.player.DefaultPlayerFactory;
 import com.deezer.sdk.player.event.OnPlayerErrorListener;
 import com.deezer.sdk.player.event.OnPlayerProgressListener;
 import com.deezer.sdk.player.event.OnPlayerStateChangeListener;
-import com.deezer.sdk.player.event.PlayerState;
 import com.deezer.sdk.player.networkcheck.WifiAndMobileNetworkStateChecker;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
 
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
-import eu.applabs.allplaylibrary.data.ServiceLibrary;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.event.PlayerEvent;
+import eu.applabs.allplaylibrary.event.ServiceConnectionEvent;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.PlayerListener;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
-public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPlayerProgressListener, OnPlayerStateChangeListener {
+public class DeezerPlayer extends ServicePlayer implements OnPlayerErrorListener, OnPlayerProgressListener, OnPlayerStateChangeListener {
 
-    private State mState;
+    private ServicePlayer.PlayerState mPlayerState;
     private DeezerService mDeezerService = new DeezerService();
     private ServiceCategory mDeezerCategoryPlaylists;
     private ServiceCategory mDeezerCategoryAlbums;
@@ -50,11 +47,10 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
     private boolean mTrackEndBroadcastEnabled = true;
     private DeezerConnect mDeezerConnect;
     private SessionStore mSessionStore = new SessionStore();
-    private List<PlayerListener> mPlayerListenerList;
     private com.deezer.sdk.player.Player mDeezerPlayer;
 
     @Inject
-    protected MusicLibrary mMusicLibrary;
+    protected MusicCatalog mMusicCatalog;
 
     @Inject
     protected Player mPlayer;
@@ -64,20 +60,20 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
     public DeezerPlayer() {
         AllPlayLibrary.getInstance().component().inject(this);
-        mPlayerListenerList = new ArrayList<>();
-        mState = State.Idle;
+
+        mPlayerState = PlayerState.IDLE;
         mDeezerConnect = new DeezerConnect(mActivity.getApplication(), mActivity.getString(R.string.deezer_application_id));
     }
 
     @Override
     public void clearPlayer() {
         mDeezerService.clearLibrary();
-        mMusicLibrary.removeMusicLibrary(mDeezerService);
+        mMusicCatalog.removeMusicLibrary(mDeezerService);
         mDeezerPlayer.release();
     }
 
     @Override
-    public void login() {
+    public void login(Activity activity) {
         // Check if a session was stored and request login if not
         if(!mSessionStore.restore(mDeezerConnect, mActivity.getApplication())) {
             String[] permissions = new String[]{
@@ -88,7 +84,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
             };
 
             DeezerDialogListener ddl = new DeezerDialogListener();
-            mDeezerConnect.authorize(mActivity, permissions, ddl);
+            mDeezerConnect.authorize(activity, permissions, ddl);
         } else {
             notifyLoginSuccess();
             loadUserPlaylists();
@@ -107,8 +103,8 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
     }
 
     @Override
-    public State getPlayerState() {
-        return mState;
+    public PlayerState getPlayerState() {
+        return mPlayerState;
     }
 
     @Override
@@ -120,7 +116,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
     public boolean play(Song song) {
         if(song != null && song.getServiceType() == ServiceType.DEEZER) {
             if(mDeezerPlayer != null) {
-                if(mState == State.Playing || mState == State.Paused) {
+                if(mPlayerState == PlayerState.PLAYING || mPlayerState == PlayerState.PAUSED) {
                     mDeezerPlayer.stop();
                     mTrackEndBroadcastEnabled = false;
                 }
@@ -140,7 +136,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
             if(mDeezerPlayer != null) {
                 mDeezerPlayer.pause();
-                changeState(State.Paused);
+                changeState(PlayerState.PAUSED);
             }
 
             return true;
@@ -155,7 +151,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
             if(mDeezerPlayer != null) {
                 mDeezerPlayer.play();
-                changeState(State.Playing);
+                changeState(PlayerState.PLAYING);
             }
 
             return true;
@@ -170,7 +166,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
 
             if(mDeezerPlayer != null) {
                 mDeezerPlayer.stop();
-                changeState(State.Idle);
+                changeState(PlayerState.IDLE);
             }
 
             return true;
@@ -180,20 +176,9 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
     }
 
     @Override
-    public void registerListener(PlayerListener listener) {
-        mPlayerListenerList.add(listener);
-    }
-
-    @Override
-    public void unregisterListener(PlayerListener listener) {
-        mPlayerListenerList.remove(listener);
-    }
-
-    @Override
     public void onPlayerError(Exception e, long l) {
-        Log.d("test", e.getMessage());
-        e.printStackTrace();
-        processEvent(Event.Error);
+        PlayerEvent playerEvent = new PlayerEvent(PlayerEvent.PlayerEventType.ERROR, ServiceType.DEEZER);
+        processPlayerEvent(playerEvent);
     }
 
     @Override
@@ -203,23 +188,28 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
         if(song != null && song.getDuration() != 0) {
             int percent = (int) (((l/1000) * 100) /  song.getDuration());
 
-            for(PlayerListener listener : mPlayerListenerList) {
-                listener.onPlayerPlaybackPositionChanged(percent);
+            PlayerEvent playerEvent = new PlayerEvent(PlayerEvent.PlayerEventType.PLAYBACK_POSITION_CHANGED, ServiceType.DEEZER);
+            playerEvent.setPlaybackPosition(percent);
+
+            for(Observer observer : mObserverList) {
+                observer.update(this, playerEvent);
             }
         }
     }
 
     @Override
-    public void onPlayerStateChange(PlayerState playerState, long l) {
-        if(playerState == PlayerState.READY) {
+    public void onPlayerStateChange(com.deezer.sdk.player.event.PlayerState playerState, long l) {
+        if(playerState == com.deezer.sdk.player.event.PlayerState.READY) {
             mDeezerPlayer.play();
-        } else if(playerState == PlayerState.PLAYING) {
-            changeState(State.Playing);
+        } else if(playerState == com.deezer.sdk.player.event.PlayerState.PLAYING) {
+            changeState(PlayerState.PLAYING);
             mTrackEndBroadcastEnabled = true;
-        } else if(playerState == PlayerState.PLAYBACK_COMPLETED && mTrackEndBroadcastEnabled) {
+        } else if(playerState == com.deezer.sdk.player.event.PlayerState.PLAYBACK_COMPLETED && mTrackEndBroadcastEnabled) {
             mDeezerPlayer.stop();
-            changeState(State.Idle);
-            processEvent(Event.TrackEnd);
+            changeState(PlayerState.IDLE);
+
+            PlayerEvent playerEvent = new PlayerEvent(PlayerEvent.PlayerEventType.TRACK_END, ServiceType.DEEZER);
+            processPlayerEvent(playerEvent);
         }
     }
 
@@ -243,31 +233,41 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
         }
     }
 
-    private void changeState(State new_state) {
-        State old_state = mState;
-        mState = new_state;
+    private void changeState(PlayerState new_state) {
+        PlayerState old_state = mPlayerState;
+        mPlayerState = new_state;
 
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onPlayerStateChanged(ServiceType.DEEZER, old_state, new_state);
+        PlayerEvent playerEvent = new PlayerEvent(PlayerEvent.PlayerEventType.STATE_CHANGED, ServiceType.DEEZER);
+        playerEvent.setOldPlayerState(old_state);
+        playerEvent.setNewPlayerState(mPlayerState);
+
+        for(Observer observer : mObserverList) {
+            observer.update(this, playerEvent);
         }
     }
 
-    private void processEvent(Event event) {
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onPlayerEvent(event);
+    private void processPlayerEvent(PlayerEvent playerEvent) {
+        for(Observer observer : mObserverList) {
+            observer.update(this, playerEvent);
+        }
+    }
+
+    private void processServiceConnectionEvent(ServiceConnectionEvent serviceConnectionEvent) {
+        for(Observer observer : mObserverList) {
+            observer.update(this, serviceConnectionEvent);
         }
     }
 
     private void notifyLoginSuccess() {
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLoginSuccess(ServiceType.DEEZER);
-        }
+        ServiceConnectionEvent serviceConnectionEvent =
+                new ServiceConnectionEvent(ServiceConnectionEvent.ServiceConnectionEventType.CONNECTED, ServiceType.DEEZER);
+        processServiceConnectionEvent(serviceConnectionEvent);
     }
 
     private void notifyLoginError() {
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLoginError(ServiceType.DEEZER);
-        }
+        ServiceConnectionEvent serviceConnectionEvent =
+                new ServiceConnectionEvent(ServiceConnectionEvent.ServiceConnectionEventType.ERROR, ServiceType.DEEZER);
+        processServiceConnectionEvent(serviceConnectionEvent);
     }
 
     private void loadUserPlaylists() {
@@ -288,7 +288,7 @@ public class DeezerPlayer implements ServicePlayer, OnPlayerErrorListener, OnPla
         mDeezerService.addCategory(mDeezerCategoryAlbums);
         mDeezerService.addCategory(mDeezerCategoryOwnCharts);
 
-        mMusicLibrary.addMusicLibrary(mDeezerService);
+        mMusicCatalog.addMusicLibrary(mDeezerService);
 
         AlbumsListener al = new AlbumsListener();
         DeezerRequest ar = DeezerRequestFactory.requestCurrentUserAlbums();

@@ -7,7 +7,7 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
@@ -45,8 +45,8 @@ public class BaseModule {
 
     @Provides
     @Singleton
-    MusicLibrary provideMusicLibrary() {
-        return new MusicLibrary();
+    MusicCatalog provideMusicLibrary() {
+        return new MusicCatalog();
     }
 
     @Provides

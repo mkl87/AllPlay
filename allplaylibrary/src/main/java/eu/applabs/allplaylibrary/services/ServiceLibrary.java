@@ -1,8 +1,9 @@
-package eu.applabs.allplaylibrary.data;
+package eu.applabs.allplaylibrary.services;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
 public abstract class ServiceLibrary {
@@ -13,6 +14,11 @@ public abstract class ServiceLibrary {
         void onSearchResult(List<ServiceCategory> list);
     }
 
+    /**
+     * Abstract method to specify the type of the service
+     *
+     * @return ServiceType (Example: ServiceType.SPOTIFY)
+     */
     public abstract ServiceType getServiceType();
 
     public void clearLibrary() {

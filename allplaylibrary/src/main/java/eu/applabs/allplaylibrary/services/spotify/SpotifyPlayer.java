@@ -17,18 +17,17 @@ import com.spotify.sdk.android.player.Spotify;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Observer;
 
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.R;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
-import eu.applabs.allplaylibrary.player.PlayerListener;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.event.ServiceConnectionEvent;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -41,22 +40,21 @@ import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback, ConnectionStateCallback {
+public class SpotifyPlayer extends ServicePlayer implements Player.NotificationCallback, ConnectionStateCallback {
 
     private static final String TAG = SpotifyPlayer.class.getSimpleName();
 
     private Player mPlayer;
     private boolean mTrackEndBroadcastEnabled = true;
-    private State mState = State.Idle;
+    private PlayerState mPlayerState = PlayerState.IDLE;
 
     private static final int REQUEST_CODE = 1337;
     private UserPrivate mUser;
     private SpotifyService mSpotifyService;
 
-    private List<PlayerListener> mIPlayerListenerList = new CopyOnWriteArrayList<>();
 
     @Inject
-    protected MusicLibrary mMusicLibrary;
+    protected MusicCatalog mMusicCatalog;
 
     @Inject
     protected Activity mActivity;
@@ -91,27 +89,27 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
         }
 
         mSpotifyServiceWrapper.clearLibrary();
-        mMusicLibrary.removeMusicLibrary(mSpotifyServiceWrapper);
+        mMusicCatalog.removeMusicLibrary(mSpotifyServiceWrapper);
 
         Spotify.destroyPlayer(mActivity);
     }
 
     @Override
-    public void login() {
+    public void login(Activity activity) {
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(
                 mActivity.getResources().getString(R.string.spotify_client_id),
                 AuthenticationResponse.Type.TOKEN,
                 mActivity.getResources().getString(R.string.spotify_redirect_uri));
 
-        builder.setScopes(mActivity.getResources().getStringArray(R.array.spotify_permissions));
+        builder.setScopes(activity.getResources().getStringArray(R.array.spotify_permissions));
         AuthenticationRequest request = builder.build();
-        AuthenticationClient.openLoginActivity(mActivity, REQUEST_CODE, request);
+        AuthenticationClient.openLoginActivity(activity, REQUEST_CODE, request);
     }
 
     @Override
     public void logout() {
-        if(mMusicLibrary != null && mSpotifyServiceWrapper != null && mActivity != null) {
-            mMusicLibrary.removeMusicLibrary(mSpotifyServiceWrapper);
+        if(mMusicCatalog != null && mSpotifyServiceWrapper != null && mActivity != null) {
+            mMusicCatalog.removeMusicLibrary(mSpotifyServiceWrapper);
             AuthenticationClient.stopLoginActivity(mActivity, 0);
         }
     }
@@ -130,7 +128,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
                         notifyLoginSuccess();
 
                         mPlayer = spotifyPlayer;
-                        m_SpotifyPlaybackPositionChecker = new SpotifyPlaybackPositionChecker(mIPlayerListenerList, mPlayer);
+                        m_SpotifyPlaybackPositionChecker = new SpotifyPlaybackPositionChecker(SpotifyPlayer.this, mObserverList, mPlayer);
                         mPlayer.addConnectionStateCallback(SpotifyPlayer.this);
                         mPlayer.addNotificationCallback(SpotifyPlayer.this);
 
@@ -150,8 +148,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
                             @Override
                             public void failure(RetrofitError retrofitError) {
-                                int i = 0;
-                                ++i;
+
                             }
                         });
                     }
@@ -175,15 +172,15 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     }
 
     @Override
-    public State getPlayerState() {
-        return mState;
+    public PlayerState getPlayerState() {
+        return mPlayerState;
     }
 
     @Override
     public boolean play(Song song) {
         if(song != null && song.getServiceType() == ServiceType.SPOTIFY) {
             if(mPlayer != null) {
-                if(mState == State.Playing || mState == State.Paused) {
+                if(mPlayerState == PlayerState.PLAYING || mPlayerState == PlayerState.PAUSED) {
                     mTrackEndBroadcastEnabled = false;
                 }
 
@@ -198,7 +195,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
                     }
                 }, song.getUri(), 0, 0);
-                changeState(State.Playing);
+                changeState(PlayerState.PLAYING);
             }
 
             return true;
@@ -223,7 +220,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
                     }
                 });
-                changeState(State.Playing);
+                changeState(PlayerState.PLAYING);
             }
 
             return true;
@@ -248,7 +245,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
                     }
                 });
-                changeState(State.Paused);
+                changeState(PlayerState.PAUSED);
             }
 
             return true;
@@ -273,27 +270,13 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
 
                     }
                 });
-                changeState(State.Idle);
+                changeState(PlayerState.IDLE);
             }
 
             return true;
         }
 
         return false;
-    }
-
-    @Override
-    public void registerListener(PlayerListener listener) {
-        if(mIPlayerListenerList != null) {
-            mIPlayerListenerList.add(listener);
-        }
-    }
-
-    @Override
-    public void unregisterListener(PlayerListener listener) {
-        if(mIPlayerListenerList != null) {
-            mIPlayerListenerList.remove(listener);
-        }
     }
 
     @Override
@@ -326,9 +309,11 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
         if(playerEvent == PlayerEvent.kSpPlaybackNotifyContextChanged) {
             mTrackEndBroadcastEnabled = true;
         } else if (playerEvent == PlayerEvent.kSpPlaybackNotifyTrackDelivered && mTrackEndBroadcastEnabled) {
-            processEvent(Event.TrackEnd);
+            eu.applabs.allplaylibrary.event.PlayerEvent pEvent =
+                    new eu.applabs.allplaylibrary.event.PlayerEvent(eu.applabs.allplaylibrary.event.PlayerEvent.PlayerEventType.TRACK_END, ServiceType.SPOTIFY);
+            processPlayerEvent(pEvent);
         } else if (playerEvent == PlayerEvent.kSpPlaybackNotifyPlay) {
-            m_SpotifyPlaybackPositionChecker.updateIPlayerListenerList(mIPlayerListenerList);
+            m_SpotifyPlaybackPositionChecker.updateObserverList(mObserverList);
             m_SpotifyPlaybackPositionChecker.updatePlayer(mPlayer);
             m_SpotifyPlaybackPositionCheckerThread = new Thread(m_SpotifyPlaybackPositionChecker);
             m_SpotifyPlaybackPositionCheckerThread.start();
@@ -345,35 +330,44 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
     @Override
     public void onPlaybackError(Error error) {
         if(error == Error.kSpErrorCorruptTrack) {
-            processEvent(Event.Error);
+            eu.applabs.allplaylibrary.event.PlayerEvent playerEvent =
+                    new eu.applabs.allplaylibrary.event.PlayerEvent(eu.applabs.allplaylibrary.event.PlayerEvent.PlayerEventType.ERROR, ServiceType.SPOTIFY);
+            processPlayerEvent(playerEvent);
         }
     }
 
-    private void changeState(State new_state) {
-        State old_state = mState;
-        mState = new_state;
+    private void changeState(PlayerState new_state) {
+        PlayerState old_state = mPlayerState;
+        mPlayerState = new_state;
 
-        for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onPlayerStateChanged(ServiceType.SPOTIFY, old_state, new_state);
+        eu.applabs.allplaylibrary.event.PlayerEvent playerEvent =
+                new eu.applabs.allplaylibrary.event.PlayerEvent(eu.applabs.allplaylibrary.event.PlayerEvent.PlayerEventType.STATE_CHANGED, ServiceType.SPOTIFY);
+        playerEvent.setOldPlayerState(old_state);
+        playerEvent.setNewPlayerState(new_state);
+
+        processPlayerEvent(playerEvent);
+    }
+
+    private void processPlayerEvent(eu.applabs.allplaylibrary.event.PlayerEvent playerEvent) {
+        for(Observer observer : mObserverList) {
+            observer.update(this, playerEvent);
         }
     }
 
-    private void processEvent(Event event) {
-        for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onPlayerEvent(event);
+    private void processServiceConnectionEvent(ServiceConnectionEvent serviceConnectionEvent) {
+        for(Observer observer : mObserverList) {
+            observer.update(this, serviceConnectionEvent);
         }
     }
 
     private void notifyLoginSuccess() {
-        for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onLoginSuccess(ServiceType.SPOTIFY);
-        }
+        ServiceConnectionEvent serviceConnectionEvent = new ServiceConnectionEvent(ServiceConnectionEvent.ServiceConnectionEventType.CONNECTED, ServiceType.SPOTIFY);
+        processServiceConnectionEvent(serviceConnectionEvent);
     }
 
     private void notifyLoginError() {
-        for(PlayerListener listener : mIPlayerListenerList) {
-            listener.onLoginError(ServiceType.SPOTIFY);
-        }
+        ServiceConnectionEvent serviceConnectionEvent = new ServiceConnectionEvent(ServiceConnectionEvent.ServiceConnectionEventType.ERROR, ServiceType.SPOTIFY);
+        processServiceConnectionEvent(serviceConnectionEvent);
     }
 
     private void addMusicLibrary() {
@@ -389,7 +383,7 @@ public class SpotifyPlayer implements ServicePlayer, Player.NotificationCallback
         mSpotifyServiceWrapper.addCategory(mSpotifyCategoryArtists);
         mSpotifyServiceWrapper.addCategory(mSpotifyCategorySongs);
 
-        mMusicLibrary.addMusicLibrary(mSpotifyServiceWrapper);
+        mMusicCatalog.addMusicLibrary(mSpotifyServiceWrapper);
     }
 
     private void loadPlaylists(final String userId, int offset) {

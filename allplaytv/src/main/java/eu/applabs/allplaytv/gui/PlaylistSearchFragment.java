@@ -21,10 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.ServiceLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
-import eu.applabs.allplaylibrary.data.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.services.ServiceLibrary;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
 import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaytv.R;
@@ -40,7 +40,7 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
     private Handler mHandler;
     private SearchRunnable mDelayedLoad;
     private AllPlayLibrary mLibrary = AllPlayLibrary.getInstance();
-    private MusicLibrary mMusicLibrary = mLibrary.getMusicLibrary();
+    private MusicCatalog mMusicCatalog = mLibrary.getMusicLibrary();
     private Player mPlayer = mLibrary.getPlayer();
     private ArrayList<ServicePlaylist> mPlaylistList = new ArrayList<>();
     private SearchActivity mSearchActivity;
@@ -51,8 +51,8 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
 
         setOnItemViewClickedListener(this);
 
-        if(mMusicLibrary != null) {
-            for(ServiceLibrary library : mMusicLibrary.getLibraries()) {
+        if(mMusicCatalog != null) {
+            for(ServiceLibrary library : mMusicCatalog.getLibraries()) {
                 for(ServiceCategory category : library.getCategories()) {
                     for(ServicePlaylist playlist : category.getPlaylists()) {
                         mPlaylistList.add(playlist);
@@ -124,7 +124,7 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
 
     public void showResultsForQuery(String query) {
         mLoadingDialog = ProgressDialog.show(getActivity(), "", getResources().getString(R.string.dialog_loading), true);
-        mMusicLibrary.search(query, this);
+        mMusicCatalog.search(query, this);
     }
 
     public void clear() {

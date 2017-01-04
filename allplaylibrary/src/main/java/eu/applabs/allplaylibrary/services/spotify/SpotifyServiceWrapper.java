@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import eu.applabs.allplaylibrary.R;
-import eu.applabs.allplaylibrary.data.ServiceLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServiceLibrary;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Album;

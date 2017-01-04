@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 
-import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 

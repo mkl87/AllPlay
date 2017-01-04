@@ -4,18 +4,24 @@ import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, ServicePlaylist.OnPlaylistUpdateListener {
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServiceLibrary;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
 
-    public interface OnMusicLibraryUpdateListener {
-        void onMusicLibraryUpdate();
-    }
+/**
+ * Class which provides access to all available service libraries
+ *
+ * - Notifies the listener if the list was updated
+ */
+public class MusicCatalog extends Observable implements Observer {
 
     private List<ServiceLibrary> mServiceLibraryList = new ArrayList<>();
-    private List<OnMusicLibraryUpdateListener> mOnMusicLibraryUpdateListenerList = new ArrayList<>();
 
-    public MusicLibrary() {
+    public MusicCatalog() {
 
     }
 
@@ -35,31 +41,24 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
     public void addMusicLibrary(ServiceLibrary serviceLibrary) {
         registerForAllEvents(serviceLibrary);
         mServiceLibraryList.add(serviceLibrary);
-        notifyMLU();
+        notifyObservers(new Event(Event.EventType.MUSIC_CATALOG_UPDATE));
     }
 
     public void removeMusicLibrary(ServiceLibrary serviceLibrary) {
         unregisterFromAllEvents(serviceLibrary);
         mServiceLibraryList.remove(serviceLibrary);
-        notifyMLU();
-    }
-
-    public void registerListener(OnMusicLibraryUpdateListener listener) {
-        mOnMusicLibraryUpdateListenerList.add(listener);
-    }
-
-    public void unregisterListener(OnMusicLibraryUpdateListener listener) {
-        mOnMusicLibraryUpdateListenerList.remove(listener);
+        notifyObservers(new Event(Event.EventType.MUSIC_CATALOG_UPDATE));
     }
 
     @Override
-    public void onCategoryUpdate() {
-        notifyMLU();
-    }
+    public void update(java.util.Observable observable, Object o) {
+        if(o instanceof Event) {
+            Event event = (Event) o;
 
-    @Override
-    public void onPlaylistUpdate() {
-        notifyMLU();
+            if(event.getEventType() == Event.EventType.SERVICE_CATEGORY_UPDATE || event.getEventType() == Event.EventType.SERVICE_PLAYLIST_UPDATE) {
+                notifyObservers(new Event(Event.EventType.MUSIC_CATALOG_UPDATE));
+            }
+        }
     }
 
     public void search(@NonNull String query, @NonNull ServiceLibrary.OnServiceLibrarySearchResult callback) {
@@ -69,28 +68,20 @@ public class MusicLibrary implements ServiceCategory.OnCategoryUpdateListener, S
 
     private void registerForAllEvents(@NonNull ServiceLibrary serviceLibrary) {
         for(ServiceCategory serviceCategory : serviceLibrary.getCategories()) {
-            serviceCategory.registerListener(this);
+            serviceCategory.addObserver(this);
 
             for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
-                servicePlaylist.registerListener(this);
+                servicePlaylist.addObserver(this);
             }
         }
     }
 
     private void unregisterFromAllEvents(@NonNull ServiceLibrary serviceLibrary) {
         for(ServiceCategory serviceCategory : serviceLibrary.getCategories()) {
-            serviceCategory.unregisterListener(this);
+            serviceCategory.deleteObserver(this);
 
             for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
-                servicePlaylist.unregisterListener(this);
-            }
-        }
-    }
-
-    private void notifyMLU() {
-        for(OnMusicLibraryUpdateListener listener : mOnMusicLibraryUpdateListenerList) {
-            if(listener != null) {
-                listener.onMusicLibraryUpdate();
+                servicePlaylist.deleteObserver(this);
             }
         }
     }

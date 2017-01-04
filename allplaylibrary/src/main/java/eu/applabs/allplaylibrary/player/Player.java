@@ -16,18 +16,24 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
 
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.data.Observable;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.data.Song;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.event.PlayerEvent;
+import eu.applabs.allplaylibrary.event.ServiceConnectionEvent;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlayer;
 
-public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpdateListener, AudioManager.OnAudioFocusChangeListener {
+public class Player extends Observable implements Observer, AudioManager.OnAudioFocusChangeListener {
 
     private static final String TAG = Player.class.getSimpleName();
 
@@ -35,7 +41,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     protected Activity mActivity;
 
     @Inject
-    protected MusicLibrary mMusicLibrary;
+    protected MusicCatalog mMusicCatalog;
 
     @Inject
     protected SettingsManager mSettingsManager;
@@ -48,14 +54,12 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     private boolean mMediaSessionCompatInitialized = false;
     private MediaSessionCompat mMediaSessionCompat;
 
-    private List<PlayerListener> mPlayerListenerList = new ArrayList<>();
-
     public Player() {
         AllPlayLibrary.getInstance().component().inject(this);
-        mNowPlayingPlaylist.registerListener(this);
+        mNowPlayingPlaylist.addObserver(this);
 
         for(ServiceType serviceType : mSettingsManager.getConnectedServiceTypes()) {
-            login(serviceType);
+            login(mActivity, serviceType);
         }
     }
 
@@ -72,12 +76,9 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         mServicePlayerList.clear();
         mServicePlayerList = null;
 
-        mNowPlayingPlaylist.unregisterListener(this);
+        mNowPlayingPlaylist.deleteObserver(this);
         mNowPlayingPlaylist.clear();
         mNowPlayingPlaylist = null;
-
-        mPlayerListenerList.clear();
-        mPlayerListenerList = null;
 
         if(mMediaSessionCompat != null && mMediaSessionCompat.isActive()) {
             mMediaSessionCompat.setActive(false);
@@ -85,7 +86,7 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         }
     }
 
-    public boolean login(ServiceType type) {
+    public boolean login(Activity activity, ServiceType type) {
         ServicePlayer player = null;
 
         switch(type) {
@@ -100,8 +101,8 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         }
 
         if(player != null) {
-            player.registerListener(this);
-            player.login();
+            player.addObserver(this);
+            player.login(activity);
             mServicePlayerList.add(player);
         }
 
@@ -123,22 +124,15 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
             connectedServices.remove(player.getServiceType());
             mSettingsManager.setConnectedServices(connectedServices);
 
-            player.unregisterListener(this);
+            player.deleteObserver(this);
             player.logout();
-            onLogoutSuccess(player.getServiceType());
+            ServiceConnectionEvent serviceConnectionEvent = new ServiceConnectionEvent(ServiceConnectionEvent.ServiceConnectionEventType.DISCONNECTED, player.getServiceType());
+            handleServiceConnectionEvent(serviceConnectionEvent);
             player.clearPlayer();
             mServicePlayerList.remove(player);
         }
 
         return true;
-    }
-
-    public void registerListener(PlayerListener listener) {
-        mPlayerListenerList.add(listener);
-    }
-
-    public void unregisterListener(PlayerListener listener) {
-        mPlayerListenerList.remove(listener);
     }
 
     public boolean checkActivityResult(int requestCode, int resultCode, Intent intent)
@@ -156,12 +150,12 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         return mNowPlayingPlaylist;
     }
 
-    public ServicePlayer.State getPlayerState() {
+    public ServicePlayer.PlayerState getPlayerState() {
         if(mActiveServicePlayer != null) {
             return mActiveServicePlayer.getPlayerState();
         }
 
-        return ServicePlayer.State.Idle;
+        return ServicePlayer.PlayerState.IDLE;
     }
 
     public void play() {
@@ -242,73 +236,6 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
         }
     }
 
-    @Override
-    public void onPlayerStateChanged(ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
-        // Just inform the client if we got an update from the current player
-        if(mActiveServicePlayer != null && mActiveServicePlayer.getServiceType() == type) {
-            for(PlayerListener listener : mPlayerListenerList) {
-                listener.onPlayerStateChanged(type, old_state, new_state);
-            }
-        }
-    }
-
-    @Override
-    public void onPlayerEvent(ServicePlayer.Event event) {
-        if(event == ServicePlayer.Event.TrackEnd) {
-            next(); // Play the next song
-        } else if(event == ServicePlayer.Event.Error) {
-            mNowPlayingPlaylist.remove(mNowPlayingPlaylist.getCurrentSong());
-            next();
-        }
-    }
-
-    @Override
-    public void onLoginSuccess(ServiceType type) {
-        List<ServiceType> connectedServices = mSettingsManager.getConnectedServiceTypes();
-        connectedServices.add(type);
-        mSettingsManager.setConnectedServices(connectedServices);
-
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLoginSuccess(type);
-        }
-    }
-
-    @Override
-    public void onLoginError(ServiceType type) {
-        List<ServiceType> connectedServices = mSettingsManager.getConnectedServiceTypes();
-        connectedServices.remove(type);
-        mSettingsManager.setConnectedServices(connectedServices);
-
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLoginError(type);
-        }
-    }
-
-    @Override
-    public void onLogoutSuccess(ServiceType type) {
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLogoutSuccess(type);
-        }
-    }
-
-    @Override
-    public void onLogoutError(ServiceType type) {
-        for(PlayerListener listener : mPlayerListenerList) {
-            listener.onLogoutError(type);
-        }
-    }
-
-    @Override
-    public void onPlayerPlaybackPositionChanged(int position) {
-        if(mPlayerListenerList != null) {
-            for (PlayerListener listener : mPlayerListenerList) {
-                if (listener != null) {
-                    listener.onPlayerPlaybackPositionChanged(position);
-                }
-            }
-        }
-    }
-
     private void initializeMediaSession() {
         mMediaSessionCompatInitialized = true;
 
@@ -342,13 +269,70 @@ public class Player implements PlayerListener, NowPlayingPlaylist.OnPlaylistUpda
     }
 
     @Override
-    public void onPlaylistUpdate() {
-        new NowPlayingCardUpdater(mNowPlayingPlaylist.getCurrentSong()).start();
+    public void onAudioFocusChange(int focusChange) {
+
     }
 
     @Override
-    public void onAudioFocusChange(int focusChange) {
+    public void update(java.util.Observable observable, Object o) {
+        if(o instanceof Event) {
+            Event event = (Event) o;
 
+            switch (event.getEventType()) {
+                case SERVICE_PLAYLIST_UPDATE:
+                    new NowPlayingCardUpdater(mNowPlayingPlaylist.getCurrentSong()).start();
+                    break;
+                case SERVICE_CONNECTION_EVENT:
+                    ServiceConnectionEvent serviceConnectionEvent = (ServiceConnectionEvent) event;
+                    handleServiceConnectionEvent(serviceConnectionEvent);
+                    break;
+                case PLAYER_EVENT:
+                    PlayerEvent playerEvent = (PlayerEvent) event;
+                    handlePlayerEvent(playerEvent);
+                    break;
+            }
+        }
+    }
+
+    private void handleServiceConnectionEvent(ServiceConnectionEvent serviceConnectionEvent) {
+        List<ServiceType> connectedServices = mSettingsManager.getConnectedServiceTypes();
+
+        switch (serviceConnectionEvent.getServiceConnectionEventType()) {
+            case CONNECTED:
+                connectedServices.add(serviceConnectionEvent.getServiceType());
+                mSettingsManager.setConnectedServices(connectedServices);
+                break;
+            case DISCONNECTED:
+                connectedServices.remove(serviceConnectionEvent.getServiceType());
+                mSettingsManager.setConnectedServices(connectedServices);
+                break;
+        }
+
+        for(Observer observer : mObserverList) {
+            observer.update(this, serviceConnectionEvent);
+        }
+    }
+
+    private void handlePlayerEvent(PlayerEvent playerEvent) {
+        switch (playerEvent.getPlayerEventType()) {
+            case STATE_CHANGED:
+                for (Observer observer : mObserverList) {
+                    observer.update(this, playerEvent);
+                }
+                break;
+            case PLAYBACK_POSITION_CHANGED:
+                for (Observer observer : mObserverList) {
+                    observer.update(this, playerEvent);
+                }
+                break;
+            case TRACK_END:
+                next();
+                break;
+            case ERROR:
+                mNowPlayingPlaylist.remove(mNowPlayingPlaylist.getCurrentSong());
+                next();
+                break;
+        }
     }
 
     private class NowPlayingCardUpdater extends Thread {

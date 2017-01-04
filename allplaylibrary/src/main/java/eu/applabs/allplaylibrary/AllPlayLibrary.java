@@ -8,8 +8,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
@@ -43,7 +43,7 @@ public class AllPlayLibrary {
     private Activity mActivity;
 
     @Inject
-    MusicLibrary mMusicLibrary;
+    MusicCatalog mMusicCatalog;
 
     @Inject
     Player mPlayer;
@@ -90,8 +90,8 @@ public class AllPlayLibrary {
         return mPlayer;
     }
 
-    public MusicLibrary getMusicLibrary() {
-        return mMusicLibrary;
+    public MusicCatalog getMusicLibrary() {
+        return mMusicCatalog;
     }
 
     public List<ServiceType> getConnectedServiceTypes() {

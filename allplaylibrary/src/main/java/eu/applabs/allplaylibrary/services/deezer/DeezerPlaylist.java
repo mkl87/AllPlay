@@ -6,15 +6,14 @@ import com.deezer.sdk.model.Track;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 
 public class DeezerPlaylist extends ServicePlaylist {
@@ -23,14 +22,12 @@ public class DeezerPlaylist extends ServicePlaylist {
     private String mCover;
 
     @Inject
-    protected MusicLibrary mMusicLibrary;
-
-    private List<OnPlaylistUpdateListener> mOnPlaylistUpdateListenerList = new ArrayList<>();
+    protected MusicCatalog mMusicCatalog;
 
     public DeezerPlaylist(String name) {
         AllPlayLibrary.getInstance().component().inject(this);
         mName = name;
-        registerListener(mMusicLibrary);
+        addObserver(mMusicCatalog);
     }
 
     public void addSongs(Playlist playlist) {
@@ -52,7 +49,7 @@ public class DeezerPlaylist extends ServicePlaylist {
                 mSongList.add(song);
             }
 
-            notifyListener();
+            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
         }
     }
 
@@ -75,7 +72,7 @@ public class DeezerPlaylist extends ServicePlaylist {
                 mSongList.add(song);
             }
 
-            notifyListener();
+            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
         }
     }
 
@@ -98,7 +95,7 @@ public class DeezerPlaylist extends ServicePlaylist {
             mSongList.add(song);
         }
 
-        notifyListener();
+        notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
     }
 
     @Override

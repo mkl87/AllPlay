@@ -13,18 +13,22 @@ import android.widget.ProgressBar;
 
 import com.bumptech.glide.Glide;
 
+import java.util.Observable;
+import java.util.Observer;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import eu.applabs.allplaylibrary.AllPlayLibrary;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.event.PlayerEvent;
 import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaylibrary.player.Player;
-import eu.applabs.allplaylibrary.player.PlayerListener;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
-public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnPlaylistUpdateListener, PlayerListener, PlaylistAdapter.OnPositionSelectedListener {
+public class PlaylistActivity extends Activity implements Observer, PlaylistAdapter.OnPositionSelectedListener {
 
     private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
     private NowPlayingPlaylist mNowPlayingPlaylist;
@@ -45,9 +49,9 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
         setContentView(R.layout.activity_showplaylist);
         ButterKnife.bind(this);
 
-        mPlayer.registerListener(this);
+        mPlayer.addObserver(this);
         mNowPlayingPlaylist = mPlayer.getPlaylist();
-        mNowPlayingPlaylist.registerListener(this);
+        mNowPlayingPlaylist.addObserver(this);
 
         mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
@@ -60,10 +64,8 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-
-        mPlayer.unregisterListener(this);
-        mNowPlayingPlaylist.unregisterListener(this);
+        mPlayer.deleteObserver(this);
+        mNowPlayingPlaylist.deleteObserver(this);
 
         mPlaylistAdapter.clearImages();
         mPlaylistAdapter = null;
@@ -74,6 +76,8 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
         mRecyclerView = null;
 
         Glide.get(this).clearMemory();
+
+        super.onDestroy();
     }
 
     @Override
@@ -81,11 +85,11 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 if (mPlayer != null) {
-                    ServicePlayer.State state = mPlayer.getPlayerState();
+                    ServicePlayer.PlayerState state = mPlayer.getPlayerState();
 
-                    if (state == ServicePlayer.State.Playing) {
+                    if (state == ServicePlayer.PlayerState.PLAYING) {
                         mPlayer.pause();
-                    } else if (state == ServicePlayer.State.Paused) {
+                    } else if (state == ServicePlayer.PlayerState.PAUSED) {
                         mPlayer.resume();
                     }
                 }
@@ -109,60 +113,6 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
     }
 
     @Override
-    public void onPlaylistUpdate() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mPlaylistAdapter.updatePlaylist(mNowPlayingPlaylist.getPlaylistAsSongList());
-                mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
-            }
-        });
-    }
-
-    @Override
-    public void onPlayerStateChanged(ServiceType type, ServicePlayer.State old_state, ServicePlayer.State new_state) {
-        // Nothing to do
-    }
-
-    @Override
-    public void onPlayerEvent(ServicePlayer.Event event) {
-        // Nothing to do
-    }
-
-    @Override
-    public void onLoginSuccess(ServiceType type) {
-        // Nothing to do
-    }
-
-    @Override
-    public void onLoginError(ServiceType type) {
-        // Nothing to do
-    }
-
-    @Override
-    public void onLogoutSuccess(ServiceType type) {
-        // Nothing to do
-    }
-
-    @Override
-    public void onLogoutError(ServiceType type) {
-        // Nothing to do
-    }
-
-    @Override
-    public void onPlayerPlaybackPositionChanged(final int position) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ObjectAnimator animator = ObjectAnimator.ofInt(mProgressBar, "progress", position);
-                animator.setDuration(500); // 0.5 Sec
-                animator.setInterpolator(new DecelerateInterpolator());
-                animator.start();
-            }
-        });
-    }
-
-    @Override
     public void onPositionSelected(int position) {
         while (mPlayer.getPlaylist().getCurrentSongIndex() != position) {
             int currentPosition = mPlayer.getPlaylist().getCurrentSongIndex();
@@ -171,6 +121,37 @@ public class PlaylistActivity extends Activity implements NowPlayingPlaylist.OnP
                 mPlayer.prev();
             } else {
                 mPlayer.next();
+            }
+        }
+    }
+
+    @Override
+    public void update(Observable observable, Object o) {
+        if(o instanceof Event) {
+            Event event = (Event) o;
+
+            switch (event.getEventType()) {
+                case SERVICE_PLAYLIST_UPDATE:
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPlaylistAdapter.updatePlaylist(mNowPlayingPlaylist.getPlaylistAsSongList());
+                            mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
+                        }
+                    });
+                    break;
+                case PLAYER_EVENT:
+                    final PlayerEvent playerEvent = (PlayerEvent) event;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ObjectAnimator animator = ObjectAnimator.ofInt(mProgressBar, "progress", playerEvent.getPlaybackPosition());
+                            animator.setDuration(500); // 0.5 Sec
+                            animator.setInterpolator(new DecelerateInterpolator());
+                            animator.start();
+                        }
+                    });
+                    break;
             }
         }
     }

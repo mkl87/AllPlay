@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
-import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
@@ -21,13 +20,17 @@ import android.view.View;
 
 import com.bumptech.glide.Glide;
 
+import java.util.Observable;
+import java.util.Observer;
+
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.ServiceLibrary;
-import eu.applabs.allplaylibrary.data.ServiceCategory;
-import eu.applabs.allplaylibrary.data.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicLibrary;
+import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.services.ServiceLibrary;
+import eu.applabs.allplaylibrary.services.ServiceCategory;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
+import eu.applabs.allplaylibrary.data.MusicCatalog;
 import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
-import eu.applabs.allplaylibrary.player.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.data.Action;
@@ -35,13 +38,11 @@ import eu.applabs.allplaytv.presenter.ActionPresenter;
 import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
 import eu.applabs.allplaytv.presenter.PlaylistPresenter;
 
-public class MainActivity extends Activity implements MusicLibrary.OnMusicLibraryUpdateListener,
-                                                            OnItemViewClickedListener,
-                                                            View.OnClickListener {
+public class MainActivity extends Activity implements Observer, OnItemViewClickedListener, View.OnClickListener {
 
     private Activity mActivity = this;
     private Player mPlayer;
-    private MusicLibrary mMusicLibrary;
+    private MusicCatalog mMusicCatalog;
 
     private FragmentManager mFragmentManager;
     private BrowseFragment mBrowseFragment;
@@ -58,7 +59,7 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
         AllPlayLibrary library = AllPlayLibrary.getInstance();
         library.init(this);
         mPlayer = library.getPlayer();
-        mMusicLibrary = library.getMusicLibrary();
+        mMusicCatalog = library.getMusicLibrary();
 
         mFragmentManager = getFragmentManager();
         mBrowseFragment = (BrowseFragment) mFragmentManager.findFragmentById(R.id.id_frag_MainActivity);
@@ -84,7 +85,7 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
         mBrowseFragment.setAdapter(mMusicLibraryAdapter);
         initializeActionAdapter();
 
-        mMusicLibrary.registerListener(this);
+        mMusicCatalog.addObserver(this);
     }
 
     @Override
@@ -100,9 +101,9 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     protected void onDestroy() {
         super.onDestroy();
 
-        if(mMusicLibrary != null) {
-            mMusicLibrary.unregisterListener(this);
-            mMusicLibrary.clearLibrary();
+        if(mMusicCatalog != null) {
+            mMusicCatalog.deleteObserver(this);
+            mMusicCatalog.clearLibrary();
         }
 
         if(mPlayer != null) {
@@ -113,65 +114,15 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     }
 
     @Override
-    public void onMusicLibraryUpdate() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mMusicLibraryAdapter.clear();
-
-                for (ServiceLibrary library : mMusicLibrary.getLibraries()) {
-                    if (library != null) {
-                        for (ServiceCategory category : library.getCategories()) {
-                            if (category != null) {
-                                ArrayObjectAdapter categoryAdapter = new ArrayObjectAdapter(new PlaylistPresenter());
-
-                                for (ServicePlaylist playlist : category.getPlaylists()) {
-                                    if (playlist != null) {
-                                        categoryAdapter.add(playlist);
-                                    }
-                                }
-
-                                if (category.getCategoryName().compareTo(getResources().getString(R.string.category_currentplayback)) == 0) {
-                                    IconHeaderItem header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_playing));
-                                    mMusicLibraryAdapter.add(0, new ListRow(header, categoryAdapter));
-                                } else {
-                                    IconHeaderItem header = null;
-                                    switch (library.getServiceType()) {
-                                        case SPOTIFY:
-                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_spotify));
-                                            break;
-                                        case DEEZER:
-                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_deezer));
-                                            break;
-                                        case GOOGLE_MUSIC:
-                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_googlemusic));
-                                            break;
-                                        default:
-                                            header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_default));
-                                            break;
-                                    }
-                                    mMusicLibraryAdapter.add(new ListRow(header, categoryAdapter));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                addActionAdapter();
-            }
-        });
-    }
-
-    @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
                 if (mPlayer != null) {
-                    ServicePlayer.State state = mPlayer.getPlayerState();
+                    ServicePlayer.PlayerState state = mPlayer.getPlayerState();
 
-                    if(state == ServicePlayer.State.Playing) {
+                    if(state == ServicePlayer.PlayerState.PLAYING) {
                         mPlayer.pause();
-                    } else if(state == ServicePlayer.State.Paused) {
+                    } else if(state == ServicePlayer.PlayerState.PAUSED) {
                         mPlayer.resume();
                     }
                 }
@@ -233,5 +184,61 @@ public class MainActivity extends Activity implements MusicLibrary.OnMusicLibrar
     private void addActionAdapter() {
         IconHeaderItem header = new IconHeaderItem(getResources().getString(R.string.mainactivity_header_settings), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_settings));
         mMusicLibraryAdapter.add(new ListRow(header, mActionAdapter));
+    }
+
+    @Override
+    public void update(Observable observable, Object o) {
+        if(o instanceof Event) {
+            Event event = (Event) o;
+
+            if(event.getEventType() == Event.EventType.MUSIC_CATALOG_UPDATE) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mMusicLibraryAdapter.clear();
+
+                        for (ServiceLibrary library : mMusicCatalog.getLibraries()) {
+                            if (library != null) {
+                                for (ServiceCategory category : library.getCategories()) {
+                                    if (category != null) {
+                                        ArrayObjectAdapter categoryAdapter = new ArrayObjectAdapter(new PlaylistPresenter());
+
+                                        for (ServicePlaylist playlist : category.getPlaylists()) {
+                                            if (playlist != null) {
+                                                categoryAdapter.add(playlist);
+                                            }
+                                        }
+
+                                        if (category.getCategoryName().compareTo(getResources().getString(R.string.category_currentplayback)) == 0) {
+                                            IconHeaderItem header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_playing));
+                                            mMusicLibraryAdapter.add(0, new ListRow(header, categoryAdapter));
+                                        } else {
+                                            IconHeaderItem header = null;
+                                            switch (library.getServiceType()) {
+                                                case SPOTIFY:
+                                                    header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_spotify));
+                                                    break;
+                                                case DEEZER:
+                                                    header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_deezer));
+                                                    break;
+                                                case GOOGLE_MUSIC:
+                                                    header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_googlemusic));
+                                                    break;
+                                                default:
+                                                    header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_default));
+                                                    break;
+                                            }
+                                            mMusicLibraryAdapter.add(new ListRow(header, categoryAdapter));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        addActionAdapter();
+                    }
+                });
+            }
+        }
     }
 }
