@@ -20,8 +20,8 @@ import javax.inject.Inject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import eu.applabs.allplaylibrary.AllPlayLibrary;
+import eu.applabs.allplaylibrary.Playlist;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
 import eu.applabs.allplaytv.AllPlayTVApplication;
 import eu.applabs.allplaytv.R;
 
@@ -34,7 +34,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
     @Inject
     Context mContext;
 
-    private NowPlayingPlaylist mPlayerNowPlayingPlaylist = AllPlayLibrary.getInstance().getPlayer().getPlaylist();
+    private Playlist mPlayerPlaylist = AllPlayLibrary.getInstance().getPlayer().getPlaylist();
     private ImageView mBackground;
     private List<Song> mSongList;
     private OnPositionSelectedListener mOnPositionSelectedListener;
@@ -60,7 +60,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if(position == mPlayerNowPlayingPlaylist.getCurrentSongIndex()) {
+        if(position == mPlayerPlaylist.getCurrentSongIndex()) {
             holder.mCardView.bringToFront();
             holder.mLinearLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.accent));
 
@@ -68,13 +68,13 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
 
             // Set the new image
             Glide.with(mContext)
-                    .load(mPlayerNowPlayingPlaylist.getPlaylistAsSongList().get(mPlayerNowPlayingPlaylist.getCurrentSongIndex()).getCoverSmall())
+                    .load(mPlayerPlaylist.getPlaylist().get(mPlayerPlaylist.getCurrentSongIndex()).getCoverSmall())
                     .centerCrop()
                     .error(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                     .into(mBackground);
 
         } else {
-            holder.mLinearLayout.setBackgroundColor(mContext.getResources().getColor(R.color.background));
+            holder.mLinearLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.background));
         }
 
         holder.mTitle.setText(mSongList.get(position).getTitle());

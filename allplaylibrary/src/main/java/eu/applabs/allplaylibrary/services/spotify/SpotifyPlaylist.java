@@ -8,8 +8,9 @@ import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.event.PlaylistEvent;
 import eu.applabs.allplaylibrary.services.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.MusicCatalog;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -88,7 +89,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
             }
 
             mSongList.add(song);
-            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+            notifyPlaylistUpdate();
         }
     }
 
@@ -118,7 +119,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
             }
 
             mSongList.add(song);
-            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+            notifyPlaylistUpdate();
         }
     }
 
@@ -150,6 +151,11 @@ public class SpotifyPlaylist extends ServicePlaylist {
     @Override
     public String getCoverUrl() {
         return mCoverUrl;
+    }
+
+    private void notifyPlaylistUpdate() {
+        PlaylistEvent playlistEvent = new PlaylistEvent(SpotifyPlaylist.this);
+        notifyObservers(playlistEvent);
     }
 
     public class CallbackPlaylistTracks implements Callback<Pager<PlaylistTrack>> {
@@ -195,7 +201,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
 
                     mSpotifyService.getPlaylistTracks(mOwner, mId, optionMap, getCallbackPlaylistTracks());
                 } else {
-                    notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+                    notifyPlaylistUpdate();
                 }
             }
         }
@@ -238,7 +244,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
                     mSongList.add(song);
                 }
 
-                notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+                notifyPlaylistUpdate();
             }
         }
 
@@ -279,7 +285,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
                     mSongList.add(song);
                 }
 
-                notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+                notifyPlaylistUpdate();
             }
         }
 
@@ -340,7 +346,7 @@ public class SpotifyPlaylist extends ServicePlaylist {
                     mSongList.add(song);
                 }
 
-                notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+                notifyPlaylistUpdate();
             }
         }
 

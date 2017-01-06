@@ -1,4 +1,4 @@
-package eu.applabs.allplaylibrary.player;
+package eu.applabs.allplaylibrary;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -20,8 +20,6 @@ import java.util.Observer;
 
 import javax.inject.Inject;
 
-import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
 import eu.applabs.allplaylibrary.data.Observable;
 import eu.applabs.allplaylibrary.data.SettingsManager;
 import eu.applabs.allplaylibrary.data.Song;
@@ -29,6 +27,7 @@ import eu.applabs.allplaylibrary.event.Event;
 import eu.applabs.allplaylibrary.event.PlayerEvent;
 import eu.applabs.allplaylibrary.event.ServiceConnectionEvent;
 import eu.applabs.allplaylibrary.services.ServicePlayer;
+import eu.applabs.allplaylibrary.services.ServicePlaylist;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.spotify.SpotifyPlayer;
@@ -47,19 +46,20 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     protected SettingsManager mSettingsManager;
 
     @Inject
-    protected NowPlayingPlaylist mNowPlayingPlaylist;
+    protected Playlist mPlaylist;
 
     private List<ServicePlayer> mServicePlayerList = new ArrayList<>();
     private ServicePlayer mActiveServicePlayer;
+
     private boolean mMediaSessionCompatInitialized = false;
     private MediaSessionCompat mMediaSessionCompat;
 
     public Player() {
         AllPlayLibrary.getInstance().component().inject(this);
-        mNowPlayingPlaylist.addObserver(this);
+        mPlaylist.addObserver(this);
 
         for(ServiceType serviceType : mSettingsManager.getConnectedServiceTypes()) {
-            login(mActivity, serviceType);
+            connectServiceType(mActivity, serviceType);
         }
     }
 
@@ -76,9 +76,9 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
         mServicePlayerList.clear();
         mServicePlayerList = null;
 
-        mNowPlayingPlaylist.deleteObserver(this);
-        mNowPlayingPlaylist.clear();
-        mNowPlayingPlaylist = null;
+        mPlaylist.deleteObserver(this);
+        mPlaylist.clear();
+        mPlaylist = null;
 
         if(mMediaSessionCompat != null && mMediaSessionCompat.isActive()) {
             mMediaSessionCompat.setActive(false);
@@ -86,10 +86,28 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
         }
     }
 
-    public boolean login(Activity activity, ServiceType type) {
+    public void setServicePlaylist(ServicePlaylist servicePlaylist) {
+        mPlaylist.setServicePlaylist(servicePlaylist);
+    }
+
+    public ServicePlaylist getServicePlaylist() {
+        return mPlaylist.getServicePlaylist();
+    }
+
+    /**
+     * Method to connect a ServiceType
+     *
+     * Access level not specified to provide package only access !
+     *
+     * @param activity Activity (Used to connect the ServiceType)
+     * @param serviceType ServiceType
+     *
+     * @return boolean (true = Connect started)
+     */
+    boolean connectServiceType(Activity activity, ServiceType serviceType) {
         ServicePlayer player = null;
 
-        switch(type) {
+        switch(serviceType) {
             case SPOTIFY:
                 player = new SpotifyPlayer();
                 break;
@@ -109,11 +127,20 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
         return true;
     }
 
-    public boolean logout(ServiceType type) {
+    /**
+     * Method to disconnect a ServiceType
+     *
+     * Access level not specified to provide package only access !
+     *
+     * @param serviceType ServiceType
+     *
+     * @return boolean (true = Disconnect started)
+     */
+    boolean disconnectServiceType(ServiceType serviceType) {
         ServicePlayer player = null;
 
         for(ServicePlayer iplayer : mServicePlayerList) {
-            if(iplayer.getServiceType() == type) {
+            if(iplayer.getServiceType() == serviceType) {
                 player = iplayer;
                 break;
             }
@@ -135,7 +162,18 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
         return true;
     }
 
-    public boolean checkActivityResult(int requestCode, int resultCode, Intent intent)
+    /**
+     * Method to check if the login was successful
+     *
+     * Access level not specified to provide package only access !
+     *
+     * @param requestCode Integer (Code of the request)
+     * @param resultCode Integer (Code of the result)
+     * @param intent Intent (Provides addition data)
+     *
+     * @return boolean (true = Event handled)
+     */
+    boolean checkActivityResult(int requestCode, int resultCode, Intent intent)
     {
         for(ServicePlayer player : mServicePlayerList) {
             if(player.checkActivityResult(requestCode, resultCode, intent)) {
@@ -146,8 +184,8 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
         return false;
     }
 
-    public NowPlayingPlaylist getPlaylist() {
-        return mNowPlayingPlaylist;
+    public Playlist getPlaylist() {
+        return mPlaylist;
     }
 
     public ServicePlayer.PlayerState getPlayerState() {
@@ -159,7 +197,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     }
 
     public void play() {
-        Song song = mNowPlayingPlaylist.getCurrentSong();
+        Song song = mPlaylist.getCurrentSong();
 
         if(song != null) {
             for(ServicePlayer player : mServicePlayerList) {
@@ -177,7 +215,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     }
 
     public void resume() {
-        Song song = mNowPlayingPlaylist.getCurrentSong();
+        Song song = mPlaylist.getCurrentSong();
 
         if(mActiveServicePlayer != null && song != null) {
             mActiveServicePlayer.resume(song);
@@ -185,7 +223,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     }
 
     public void pause() {
-        Song song = mNowPlayingPlaylist.getCurrentSong();
+        Song song = mPlaylist.getCurrentSong();
 
         if(mActiveServicePlayer != null && song != null) {
             mActiveServicePlayer.pause(song);
@@ -193,7 +231,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     }
 
     public void stop() {
-        Song song = mNowPlayingPlaylist.getCurrentSong();
+        Song song = mPlaylist.getCurrentSong();
 
         if(mActiveServicePlayer != null && song != null) {
             mActiveServicePlayer.stop(song);
@@ -201,7 +239,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     }
 
     public void next() {
-        Song song = mNowPlayingPlaylist.getNextSong();
+        Song song = mPlaylist.getNextSong();
 
         if(song != null) {
             for(ServicePlayer player : mServicePlayerList) {
@@ -219,7 +257,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
     }
 
     public void prev() {
-        Song song = mNowPlayingPlaylist.getPrevSong();
+        Song song = mPlaylist.getPrevSong();
 
         if(song != null) {
             for(ServicePlayer player : mServicePlayerList) {
@@ -256,7 +294,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
                 stateBuilder.setState(0, 100, 1.0f);
 
                 mMediaSessionCompat.setPlaybackState(stateBuilder.build());
-                new NowPlayingCardUpdater(mNowPlayingPlaylist.getCurrentSong()).start();
+                new NowPlayingCardUpdater(mPlaylist.getCurrentSong()).start();
                 mMediaSessionCompat.setActive(true);
             }
         }
@@ -279,8 +317,8 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
             Event event = (Event) o;
 
             switch (event.getEventType()) {
-                case SERVICE_PLAYLIST_UPDATE:
-                    new NowPlayingCardUpdater(mNowPlayingPlaylist.getCurrentSong()).start();
+                case PLAYLIST_EVENT:
+                    new NowPlayingCardUpdater(mPlaylist.getCurrentSong()).start();
                     break;
                 case SERVICE_CONNECTION_EVENT:
                     ServiceConnectionEvent serviceConnectionEvent = (ServiceConnectionEvent) event;
@@ -329,7 +367,7 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
                 next();
                 break;
             case ERROR:
-                mNowPlayingPlaylist.remove(mNowPlayingPlaylist.getCurrentSong());
+                mPlaylist.remove(mPlaylist.getCurrentSong());
                 next();
                 break;
         }
@@ -337,23 +375,23 @@ public class Player extends Observable implements Observer, AudioManager.OnAudio
 
     private class NowPlayingCardUpdater extends Thread {
 
-        private Song m_Song = null;
+        private Song mSong = null;
 
         public NowPlayingCardUpdater(Song song) {
-            m_Song = song;
+            mSong = song;
         }
 
         @Override
         public void run() {
             super.run();
 
-            if(m_Song != null) {
+            if(mSong != null) {
                 MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder();
-                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, m_Song.getTitle());
-                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, m_Song.getArtist());
+                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, mSong.getTitle());
+                metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, mSong.getArtist());
 
                 try {
-                    Bitmap bitmap = Glide.with(mActivity).load(m_Song.getCoverBig()).asBitmap().into(800, 800).get();
+                    Bitmap bitmap = Glide.with(mActivity).load(mSong.getCoverBig()).asBitmap().into(800, 800).get();
                     metadataBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
                 } catch (Exception e) {
                     Log.e(TAG, "Error during cover load");

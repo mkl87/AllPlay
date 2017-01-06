@@ -29,8 +29,7 @@ import java.util.Observer;
 import eu.applabs.allplaylibrary.AllPlayLibrary;
 import eu.applabs.allplaylibrary.event.Event;
 import eu.applabs.allplaylibrary.event.ServiceConnectionEvent;
-import eu.applabs.allplaylibrary.services.ServicePlayer;
-import eu.applabs.allplaylibrary.player.Player;
+import eu.applabs.allplaylibrary.Player;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
@@ -42,7 +41,8 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     private BrowseFragment mBrowseFragment;
     private ArrayObjectAdapter mManageAccountAdapter;
 
-    private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
+    private AllPlayLibrary mAllPlayLibrary = AllPlayLibrary.getInstance();
+    private Player mPlayer = mAllPlayLibrary.getPlayer();
 
     private List<ServiceType> mConnectedServices = new ArrayList<>();
     private List<ServiceType> mAvailableServices = new ArrayList<>();
@@ -90,7 +90,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(!mPlayer.checkActivityResult(requestCode, resultCode, data)) {
+        if(!mAllPlayLibrary.checkActivityResult(requestCode, resultCode, data)) {
             // Seems to be a result for another request
         }
     }
@@ -146,10 +146,10 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row) {
         if(item instanceof ServiceType) {
             final ServiceType type = (ServiceType) item;
-            final Player player = AllPlayLibrary.getInstance().getPlayer();
+            final AllPlayLibrary allPlayLibrary = AllPlayLibrary.getInstance();
 
             if(mAvailableServices.contains(type)) {
-                if(!player.login(this, type)) {
+                if(!allPlayLibrary.connectServiceType(this, type)) {
                     Toast.makeText(this, getResources().getString(R.string.manageaccountsactivity_toast_commingsoon), Toast.LENGTH_SHORT).show();
                 }
             } else {
@@ -159,7 +159,7 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
 
                 builder.setPositiveButton(getResources().getString(R.string.manageaccountsactivity_disconnectdialog_positive), new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) { player.logout(type); }
+                    public void onClick(DialogInterface dialog, int which) { allPlayLibrary.disconnectServiceType(type); }
                 });
                 builder.setNegativeButton(getResources().getString(R.string.manageaccountsactivity_disconnectdialog_negative), new DialogInterface.OnClickListener() {
                     @Override

@@ -3,10 +3,10 @@ package eu.applabs.allplaylibrary.event;
 public class Event {
 
     public enum EventType {
-        MUSIC_CATALOG_UPDATE,
-        SERVICE_LIBRARY_UPDATE,
-        SERVICE_CATEGORY_UPDATE,
-        SERVICE_PLAYLIST_UPDATE,
+        MUSIC_CATALOG_EVENT,
+        SERVICE_LIBRARY_EVENT,
+        CATEGORY_EVENT,
+        PLAYLIST_EVENT,
         SERVICE_CONNECTION_EVENT,
         PLAYER_EVENT
     }

@@ -35,6 +35,10 @@ public abstract class ServiceLibrary {
         }
     }
 
+    public boolean containsCategory(ServiceCategory category) {
+        return mServiceCategoryList.contains(category);
+    }
+
     public void removeCategory(ServiceCategory category) {
         if(mServiceCategoryList.contains(category)) {
             mServiceCategoryList.remove(category);

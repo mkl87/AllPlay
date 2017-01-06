@@ -8,8 +8,9 @@ import java.util.List;
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.MusicCatalog;
 import eu.applabs.allplaylibrary.data.Observable;
+import eu.applabs.allplaylibrary.event.CategoryEvent;
 import eu.applabs.allplaylibrary.event.Event;
 
 /**
@@ -24,15 +25,22 @@ public class ServiceCategory extends Observable {
     protected MusicCatalog mMusicCatalog;
 
     private String mName;
+    private ServiceType mServiceType;
     private List<ServicePlaylist> mServicePlaylists = new ArrayList<>();
 
-    public ServiceCategory(String name) {
+    public ServiceCategory(String name, ServiceType serviceType) {
         AllPlayLibrary.getInstance().component().inject(this);
         mName = name;
+        mServiceType = serviceType;
+
     }
 
     public String getCategoryName() {
         return mName;
+    }
+
+    public ServiceType getServiceType() {
+        return mServiceType;
     }
 
     public void clearCategory() {
@@ -45,17 +53,22 @@ public class ServiceCategory extends Observable {
 
     public void addPlaylist(@NonNull ServicePlaylist playlist) {
         mServicePlaylists.add(playlist);
-        notifyObservers(new Event(Event.EventType.SERVICE_CATEGORY_UPDATE));
+        notifyCategoryUpdate();
     }
 
     public void removePlaylist(@NonNull ServicePlaylist playlist) {
         if(mServicePlaylists.contains(playlist)) {
             mServicePlaylists.remove(playlist);
-            notifyObservers(new Event(Event.EventType.SERVICE_CATEGORY_UPDATE));
+            notifyCategoryUpdate();
         }
     }
 
     public List<ServicePlaylist> getPlaylists() {
         return mServicePlaylists;
+    }
+
+    private void notifyCategoryUpdate() {
+        CategoryEvent categoryEvent = new CategoryEvent(this);
+        notifyObservers(categoryEvent);
     }
 }

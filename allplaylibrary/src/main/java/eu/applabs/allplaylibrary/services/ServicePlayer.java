@@ -5,7 +5,6 @@ import android.content.Intent;
 
 import eu.applabs.allplaylibrary.data.Observable;
 import eu.applabs.allplaylibrary.data.Song;
-import eu.applabs.allplaylibrary.player.Player;
 
 public abstract class ServicePlayer extends Observable {
 
@@ -17,7 +16,7 @@ public abstract class ServicePlayer extends Observable {
 
     public abstract void clearPlayer();
 
-    // Methods to login
+    // Methods to connectServiceType
     public abstract void login(Activity activity);
     public abstract void logout();
 

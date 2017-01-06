@@ -1,4 +1,4 @@
-package eu.applabs.allplaylibrary;
+package eu.applabs.allplaylibrary.module;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,10 +7,11 @@ import javax.inject.Singleton;
 
 import dagger.Module;
 import dagger.Provides;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.AllPlayLibrary;
+import eu.applabs.allplaylibrary.MusicCatalog;
+import eu.applabs.allplaylibrary.Player;
+import eu.applabs.allplaylibrary.Playlist;
 import eu.applabs.allplaylibrary.data.SettingsManager;
-import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
-import eu.applabs.allplaylibrary.player.Player;
 
 @Module
 public class BaseModule {
@@ -39,8 +40,8 @@ public class BaseModule {
 
     @Provides
     @Singleton
-    NowPlayingPlaylist provideNowPlayingPlaylist() {
-        return new NowPlayingPlaylist();
+    Playlist provideNowPlayingPlaylist() {
+        return new Playlist();
     }
 
     @Provides

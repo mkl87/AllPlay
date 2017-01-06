@@ -19,19 +19,18 @@ import java.util.Observer;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import eu.applabs.allplaylibrary.AllPlayLibrary;
+import eu.applabs.allplaylibrary.Playlist;
 import eu.applabs.allplaylibrary.event.Event;
 import eu.applabs.allplaylibrary.event.PlayerEvent;
-import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
-import eu.applabs.allplaylibrary.player.Player;
+import eu.applabs.allplaylibrary.Player;
 import eu.applabs.allplaylibrary.services.ServicePlayer;
-import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
 public class PlaylistActivity extends Activity implements Observer, PlaylistAdapter.OnPositionSelectedListener {
 
     private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
-    private NowPlayingPlaylist mNowPlayingPlaylist;
+    private Playlist mPlaylist;
 
     private LinearLayoutManager mLinearLayoutManager;
     private PlaylistAdapter mPlaylistAdapter;
@@ -50,22 +49,22 @@ public class PlaylistActivity extends Activity implements Observer, PlaylistAdap
         ButterKnife.bind(this);
 
         mPlayer.addObserver(this);
-        mNowPlayingPlaylist = mPlayer.getPlaylist();
-        mNowPlayingPlaylist.addObserver(this);
+        mPlaylist = mPlayer.getPlaylist();
+        mPlaylist.addObserver(this);
 
         mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
+        mLinearLayoutManager.scrollToPositionWithOffset(mPlaylist.getCurrentSongIndex(), 640);
 
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
-        mPlaylistAdapter = new PlaylistAdapter(mBackground, mPlayer.getPlaylist().getPlaylistAsSongList(), this);
+        mPlaylistAdapter = new PlaylistAdapter(mBackground, mPlayer.getPlaylist().getPlaylist(), this);
         mRecyclerView.setAdapter(mPlaylistAdapter);
     }
 
     @Override
     protected void onDestroy() {
         mPlayer.deleteObserver(this);
-        mNowPlayingPlaylist.deleteObserver(this);
+        mPlaylist.deleteObserver(this);
 
         mPlaylistAdapter.clearImages();
         mPlaylistAdapter = null;
@@ -131,12 +130,12 @@ public class PlaylistActivity extends Activity implements Observer, PlaylistAdap
             Event event = (Event) o;
 
             switch (event.getEventType()) {
-                case SERVICE_PLAYLIST_UPDATE:
+                case PLAYLIST_EVENT:
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mPlaylistAdapter.updatePlaylist(mNowPlayingPlaylist.getPlaylistAsSongList());
-                            mLinearLayoutManager.scrollToPositionWithOffset(mNowPlayingPlaylist.getCurrentSongIndex(), 640);
+                            mPlaylistAdapter.updatePlaylist(mPlaylist.getPlaylist());
+                            mLinearLayoutManager.scrollToPositionWithOffset(mPlaylist.getCurrentSongIndex(), 640);
                         }
                     });
                     break;

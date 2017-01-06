@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
+import eu.applabs.allplaylibrary.Playlist;
 import eu.applabs.allplaylibrary.services.ServiceLibrary;
 import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.services.ServicePlaylist;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
-import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
-import eu.applabs.allplaylibrary.player.Player;
+import eu.applabs.allplaylibrary.MusicCatalog;
+import eu.applabs.allplaylibrary.Player;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.PlaylistPresenter;
 import eu.applabs.allplaytv.utils.SearchRunnable;
@@ -105,13 +105,10 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
         if(item instanceof ServicePlaylist) {
             if(mSearchActivity != null) {
                 ServicePlaylist servicePlaylist = (ServicePlaylist) item;
-                NowPlayingPlaylist nowPlayingPlaylist = mPlayer.getPlaylist();
-                nowPlayingPlaylist.clear();
-                nowPlayingPlaylist.setPlaylist(servicePlaylist.getPlaylist());
-
+                mPlayer.setServicePlaylist(servicePlaylist);
                 mPlayer.play();
 
-                // Start nowPlayingPlaylist
+                // Start playlist
                 Intent intent = new Intent(mSearchActivity, PlaylistActivity.class);
                 startActivity(intent);
             }

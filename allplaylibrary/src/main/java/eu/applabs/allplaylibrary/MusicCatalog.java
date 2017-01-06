@@ -1,4 +1,4 @@
-package eu.applabs.allplaylibrary.data;
+package eu.applabs.allplaylibrary;
 
 import android.support.annotation.NonNull;
 
@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Observer;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import eu.applabs.allplaylibrary.data.Observable;
 import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.event.MusicCatalogEvent;
 import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.services.ServiceLibrary;
 import eu.applabs.allplaylibrary.services.ServicePlaylist;
@@ -38,16 +40,20 @@ public class MusicCatalog extends Observable implements Observer {
         return mServiceLibraryList;
     }
 
-    public void addMusicLibrary(ServiceLibrary serviceLibrary) {
-        registerForAllEvents(serviceLibrary);
-        mServiceLibraryList.add(serviceLibrary);
-        notifyObservers(new Event(Event.EventType.MUSIC_CATALOG_UPDATE));
+    public void addServiceLibrary(ServiceLibrary serviceLibrary) {
+        if(!mServiceLibraryList.contains(serviceLibrary)) {
+            registerForAllEvents(serviceLibrary);
+            mServiceLibraryList.add(serviceLibrary);
+            notifyObservers(new MusicCatalogEvent());
+        }
     }
 
-    public void removeMusicLibrary(ServiceLibrary serviceLibrary) {
-        unregisterFromAllEvents(serviceLibrary);
-        mServiceLibraryList.remove(serviceLibrary);
-        notifyObservers(new Event(Event.EventType.MUSIC_CATALOG_UPDATE));
+    public void removeServiceLibrary(ServiceLibrary serviceLibrary) {
+        if(mServiceLibraryList.contains(serviceLibrary)) {
+            unregisterFromAllEvents(serviceLibrary);
+            mServiceLibraryList.remove(serviceLibrary);
+            notifyObservers(new MusicCatalogEvent());
+        }
     }
 
     @Override
@@ -55,8 +61,8 @@ public class MusicCatalog extends Observable implements Observer {
         if(o instanceof Event) {
             Event event = (Event) o;
 
-            if(event.getEventType() == Event.EventType.SERVICE_CATEGORY_UPDATE || event.getEventType() == Event.EventType.SERVICE_PLAYLIST_UPDATE) {
-                notifyObservers(new Event(Event.EventType.MUSIC_CATALOG_UPDATE));
+            if(event.getEventType() == Event.EventType.CATEGORY_EVENT || event.getEventType() == Event.EventType.PLAYLIST_EVENT) {
+                notifyObservers(o);
             }
         }
     }
@@ -70,7 +76,7 @@ public class MusicCatalog extends Observable implements Observer {
         for(ServiceCategory serviceCategory : serviceLibrary.getCategories()) {
             serviceCategory.addObserver(this);
 
-            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+            for (ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
                 servicePlaylist.addObserver(this);
             }
         }
@@ -80,10 +86,14 @@ public class MusicCatalog extends Observable implements Observer {
         for(ServiceCategory serviceCategory : serviceLibrary.getCategories()) {
             serviceCategory.deleteObserver(this);
 
-            for(ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
+            for (ServicePlaylist servicePlaylist : serviceCategory.getPlaylists()) {
                 servicePlaylist.deleteObserver(this);
             }
         }
+    }
+
+    public boolean containsLibrary(@NonNull ServiceLibrary serviceLibrary) {
+        return mServiceLibraryList.contains(serviceLibrary);
     }
 
     private class QueryThread extends Thread {

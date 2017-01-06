@@ -55,7 +55,7 @@ public class SpotifyServiceWrapper extends ServiceLibrary {
             ArtistsPager artistsPager = mSpotifyService.searchArtists(query);
 
             if(artistsPager != null && artistsPager.artists != null && artistsPager.artists.items != null) {
-                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_artists));
+                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_artists), ServiceType.SPOTIFY);
                 List<Artist> list = artistsPager.artists.items;
 
                 for(Artist a : list) {
@@ -78,7 +78,7 @@ public class SpotifyServiceWrapper extends ServiceLibrary {
             AlbumsPager albumsPager = mSpotifyService.searchAlbums(query);
 
             if(albumsPager != null && albumsPager.albums != null && albumsPager.albums.items != null) {
-                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_albums));
+                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_albums), ServiceType.SPOTIFY);
                 List<AlbumSimple> list = albumsPager.albums.items;
 
                 for(AlbumSimple as : list) {
@@ -101,7 +101,7 @@ public class SpotifyServiceWrapper extends ServiceLibrary {
             TracksPager trap = mSpotifyService.searchTracks(query);
 
             if(trap != null && trap.tracks != null && trap.tracks.items != null) {
-                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_songs));
+                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_songs), ServiceType.SPOTIFY);
                 List<Track> list = trap.tracks.items;
 
                 for(Track t : list) {
@@ -118,7 +118,7 @@ public class SpotifyServiceWrapper extends ServiceLibrary {
             PlaylistsPager playlistsPager = mSpotifyService.searchPlaylists(query);
 
             if(playlistsPager != null && playlistsPager.playlists != null && playlistsPager.playlists.items != null) {
-                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_playlists));
+                ServiceCategory spotifyCategory = new ServiceCategory(mActivity.getResources().getString(R.string.category_playlists), ServiceType.SPOTIFY);
                 List<PlaylistSimple> list = playlistsPager.playlists.items;
 
                 for(PlaylistSimple ps : list) {

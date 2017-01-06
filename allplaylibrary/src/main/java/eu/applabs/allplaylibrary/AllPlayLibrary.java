@@ -1,18 +1,17 @@
 package eu.applabs.allplaylibrary;
 
 import android.app.Activity;
+import android.content.Intent;
 
-import java.util.List;
+import java.util.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.module.BaseModule;
 import eu.applabs.allplaylibrary.services.ServiceCategory;
 import eu.applabs.allplaylibrary.data.SettingsManager;
-import eu.applabs.allplaylibrary.player.NowPlayingPlaylist;
-import eu.applabs.allplaylibrary.player.Player;
 import eu.applabs.allplaylibrary.services.ServiceType;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlayer;
 import eu.applabs.allplaylibrary.services.deezer.DeezerPlaylist;
@@ -25,7 +24,7 @@ public class AllPlayLibrary {
     @Component(modules = BaseModule.class)
     public interface ApplicationComponent {
         void inject(AllPlayLibrary allPlayLibrary);
-        void inject(NowPlayingPlaylist nowPlayingPlaylist);
+        void inject(Playlist playlist);
         void inject(Player player);
         void inject(ServiceCategory serviceCategory);
         void inject(SettingsManager settingsManager);
@@ -96,5 +95,17 @@ public class AllPlayLibrary {
 
     public List<ServiceType> getConnectedServiceTypes() {
         return mSettingsManager.getConnectedServiceTypes();
+    }
+
+    public boolean connectServiceType(Activity activity, ServiceType serviceType) {
+        return mPlayer.connectServiceType(activity, serviceType);
+    }
+
+    public boolean disconnectServiceType(ServiceType serviceType) {
+        return mPlayer.disconnectServiceType(serviceType);
+    }
+
+    public boolean checkActivityResult(int requestCode, int resultCode, Intent intent) {
+        return mPlayer.checkActivityResult(requestCode, resultCode, intent);
     }
 }

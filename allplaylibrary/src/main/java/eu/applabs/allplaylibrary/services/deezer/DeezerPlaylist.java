@@ -4,14 +4,14 @@ import com.deezer.sdk.model.Album;
 import com.deezer.sdk.model.Playlist;
 import com.deezer.sdk.model.Track;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
 import eu.applabs.allplaylibrary.AllPlayLibrary;
-import eu.applabs.allplaylibrary.data.MusicCatalog;
+import eu.applabs.allplaylibrary.MusicCatalog;
 import eu.applabs.allplaylibrary.event.Event;
+import eu.applabs.allplaylibrary.event.PlaylistEvent;
 import eu.applabs.allplaylibrary.services.ServicePlaylist;
 import eu.applabs.allplaylibrary.data.Song;
 import eu.applabs.allplaylibrary.services.ServiceType;
@@ -49,7 +49,7 @@ public class DeezerPlaylist extends ServicePlaylist {
                 mSongList.add(song);
             }
 
-            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+            notifyPlaylistUpdate();
         }
     }
 
@@ -72,7 +72,7 @@ public class DeezerPlaylist extends ServicePlaylist {
                 mSongList.add(song);
             }
 
-            notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+            notifyPlaylistUpdate();
         }
     }
 
@@ -95,7 +95,7 @@ public class DeezerPlaylist extends ServicePlaylist {
             mSongList.add(song);
         }
 
-        notifyObservers(new Event(Event.EventType.SERVICE_PLAYLIST_UPDATE));
+        notifyPlaylistUpdate();
     }
 
     @Override
@@ -106,5 +106,11 @@ public class DeezerPlaylist extends ServicePlaylist {
     @Override
     public String getCoverUrl() {
         return mCover;
+    }
+
+    private void notifyPlaylistUpdate() {
+        PlaylistEvent playlistEvent = new PlaylistEvent(this);
+
+        notifyObservers(playlistEvent);
     }
 }
