@@ -1,6 +1,7 @@
 package eu.applabs.allplaytv.adapter;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -39,17 +40,12 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
     private List<Song> mSongList;
     private OnPositionSelectedListener mOnPositionSelectedListener;
 
-    public PlaylistAdapter(ImageView background, List<Song> list, OnPositionSelectedListener onPositionSelectedListener) {
+    public PlaylistAdapter(ImageView background, List<Song> songList, OnPositionSelectedListener onPositionSelectedListener) {
         AllPlayTVApplication.component().inject(this);
 
         mBackground = background;
-        mSongList = list;
+        mSongList = songList;
         mOnPositionSelectedListener = onPositionSelectedListener;
-    }
-
-    public void clearImages() {
-        Glide.clear(mBackground);
-        Glide.get(mContext).clearMemory();
     }
 
     @Override
@@ -64,12 +60,11 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
             holder.mCardView.bringToFront();
             holder.mLinearLayout.setBackgroundColor(ContextCompat.getColor(mContext, R.color.accent));
 
-            clearImages();
-
             // Set the new image
             Glide.with(mContext)
                     .load(mPlayerPlaylist.getPlaylist().get(mPlayerPlaylist.getCurrentSongIndex()).getCoverSmall())
                     .centerCrop()
+                    .placeholder(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                     .error(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                     .into(mBackground);
 
@@ -84,6 +79,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         Glide.with(mContext)
                 .load(mSongList.get(position).getCoverSmall())
                 .centerCrop()
+                .placeholder(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                 .error(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                 .into(holder.mImageView);
     }
@@ -105,7 +101,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.ViewHo
         return 0;
     }
 
-    public void updatePlaylist(List<Song> list) {
+    public void updatePlaylist(@NonNull List<Song> list) {
         mSongList = list;
         notifyDataSetChanged();
     }

@@ -27,10 +27,10 @@ import eu.applabs.allplaylibrary.services.ServicePlayer;
 import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.adapter.PlaylistAdapter;
 
-public class PlaylistActivity extends Activity implements Observer, PlaylistAdapter.OnPositionSelectedListener {
+public class PlaylistActivity extends BaseActivity implements Observer, PlaylistAdapter.OnPositionSelectedListener {
 
     private Player mPlayer = AllPlayLibrary.getInstance().getPlayer();
-    private Playlist mPlaylist;
+    private Playlist mPlaylist = mPlayer.getPlaylist();
 
     private LinearLayoutManager mLinearLayoutManager;
     private PlaylistAdapter mPlaylistAdapter;
@@ -49,7 +49,6 @@ public class PlaylistActivity extends Activity implements Observer, PlaylistAdap
         ButterKnife.bind(this);
 
         mPlayer.addObserver(this);
-        mPlaylist = mPlayer.getPlaylist();
         mPlaylist.addObserver(this);
 
         mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -65,16 +64,6 @@ public class PlaylistActivity extends Activity implements Observer, PlaylistAdap
     protected void onDestroy() {
         mPlayer.deleteObserver(this);
         mPlaylist.deleteObserver(this);
-
-        mPlaylistAdapter.clearImages();
-        mPlaylistAdapter = null;
-
-        mBackground = null;
-        mProgressBar = null;
-        mLinearLayoutManager = null;
-        mRecyclerView = null;
-
-        Glide.get(this).clearMemory();
 
         super.onDestroy();
     }

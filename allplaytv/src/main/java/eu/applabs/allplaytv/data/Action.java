@@ -2,26 +2,17 @@ package eu.applabs.allplaytv.data;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 
 public class Action {
 
-    private String mName = "";
+    private String mName;
     private Drawable mIcon;
     private Intent mIntent;
 
-    public Action() {
-
-    }
-
-    public void setName(String name) {
+    public Action(@NonNull String name, @NonNull Drawable icon, @NonNull Intent intent) {
         mName = name;
-    }
-
-    public void setIcon(Drawable icon) {
         mIcon = icon;
-    }
-
-    public void setIntent(Intent intent) {
         mIntent = intent;
     }
 

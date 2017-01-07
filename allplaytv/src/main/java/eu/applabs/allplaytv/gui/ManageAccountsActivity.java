@@ -35,7 +35,7 @@ import eu.applabs.allplaytv.R;
 import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
 import eu.applabs.allplaytv.presenter.ServicePresenter;
 
-public class ManageAccountsActivity extends Activity implements OnItemViewClickedListener, Observer {
+public class ManageAccountsActivity extends BaseActivity implements OnItemViewClickedListener, Observer {
 
     private FragmentManager mFragmentManager;
     private BrowseFragment mBrowseFragment;
@@ -81,8 +81,6 @@ public class ManageAccountsActivity extends Activity implements OnItemViewClicke
     @Override
     protected void onDestroy() {
         mPlayer.deleteObserver(this);
-        Glide.get(this).clearMemory();
-
         super.onDestroy();
     }
 

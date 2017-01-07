@@ -1,17 +1,13 @@
 package eu.applabs.allplaytv.gui;
 
-import android.app.Activity;
-import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v4.content.ContextCompat;
 import android.view.KeyEvent;
 
-import com.bumptech.glide.Glide;
-
 import eu.applabs.allplaytv.R;
 
-public class SearchActivity extends Activity {
+public class SearchActivity extends BaseActivity {
 
     private PlaylistSearchFragment mPlaylistSearchFragment;
 
@@ -26,13 +22,6 @@ public class SearchActivity extends Activity {
         BackgroundManager backgroundManager = BackgroundManager.getInstance(this);
         backgroundManager.attach(this.getWindow());
         backgroundManager.setDrawable(ContextCompat.getDrawable(this, R.drawable.background));
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        Glide.get(this).clearMemory();
     }
 
     @Override

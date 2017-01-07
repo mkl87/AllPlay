@@ -71,8 +71,8 @@ public class PlaylistSearchFragment extends SearchFragment implements ServiceLib
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         Glide.get(getActivity()).clearMemory();
+        super.onDestroy();
     }
 
     @Override

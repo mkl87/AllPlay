@@ -39,9 +39,7 @@ import eu.applabs.allplaytv.data.Action;
 import eu.applabs.allplaytv.presenter.ActionPresenter;
 import eu.applabs.allplaytv.presenter.IconHeaderItemPresenter;
 
-public class MainActivity extends Activity implements Observer, OnItemViewClickedListener, View.OnClickListener {
-
-    private Activity mActivity = this;
+public class MainActivity extends BaseActivity implements Observer, OnItemViewClickedListener, View.OnClickListener {
 
     private AllPlayLibrary mAllPlayLibrary;
     private MusicCatalog mMusicCatalog;
@@ -51,7 +49,6 @@ public class MainActivity extends Activity implements Observer, OnItemViewClicke
     private BrowseFragment mBrowseFragment;
 
     private ArrayObjectAdapter mMusicLibraryAdapter;
-    private ArrayObjectAdapter mActionAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +84,7 @@ public class MainActivity extends Activity implements Observer, OnItemViewClicke
 
         mMusicLibraryAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         mBrowseFragment.setAdapter(mMusicLibraryAdapter);
-        initializeActionAdapter();
+        refreshAllContent();
 
         // Observe the MusicCatalog to update the UI after updates
         mMusicCatalog.addObserver(this);
@@ -119,7 +116,6 @@ public class MainActivity extends Activity implements Observer, OnItemViewClicke
         }
 
         AllPlayLibrary.getInstance().deinit();
-        Glide.get(this).clearMemory();
     }
 
     @Override
@@ -175,43 +171,43 @@ public class MainActivity extends Activity implements Observer, OnItemViewClicke
         startActivity(intent);
     }
 
-    private void initializeActionAdapter() {
-        mActionAdapter = new ArrayObjectAdapter(new ActionPresenter());
+    private void refreshAllContent() {
+        mMusicLibraryAdapter.clear();
 
-        Action manageAccounts = new Action();
-        manageAccounts.setName(getResources().getString(R.string.mainactivity_action_manageaccounts));
-        manageAccounts.setIcon(getResources().getDrawable(R.drawable.banner, null));
-        manageAccounts.setIntent(new Intent(mActivity, ManageAccountsActivity.class));
-
-        mActionAdapter.add(manageAccounts);
-
-        addActionAdapter();
-    }
-
-    private void addActionAdapter() {
-        IconHeaderItem header = new IconHeaderItem(getResources().getString(R.string.mainactivity_header_settings), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_settings));
-        mMusicLibraryAdapter.add(new ListRow(header, mActionAdapter));
-    }
-
-    private void addAllCategoriesToAdapter() {
         for (ServiceLibrary library : mMusicCatalog.getLibraries()) {
             for (ServiceCategory category : library.getCategories()) {
                 ServiceCategoryAdapter serviceCategoryAdapter = new ServiceCategoryAdapter(category);
 
-                if (category.getCategoryName().compareTo(getResources().getString(R.string.category_currentplayback)) == 0) {
-                    IconHeaderItem header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_playing));
+                if (category.getCategoryName().equals(getString(R.string.category_currentplayback))) {
+                    IconHeaderItem header = new IconHeaderItem(category.getCategoryName(), ContextCompat.getDrawable(this, R.drawable.ic_playing));
                     mMusicLibraryAdapter.add(0, new ListRow(header, serviceCategoryAdapter));
                 } else {
-                    IconHeaderItem header = new IconHeaderItem(getApplicationContext(), category.getCategoryName(), category.getServiceType());
+                    IconHeaderItem header = new IconHeaderItem(this, category.getCategoryName(), category.getServiceType());
                     mMusicLibraryAdapter.add(new ListRow(header, serviceCategoryAdapter));
                 }
             }
         }
+
+        addActionAdapter(mMusicLibraryAdapter);
+    }
+
+    private void addActionAdapter(ArrayObjectAdapter arrayObjectAdapter) {
+        ArrayObjectAdapter actionAdapter = new ArrayObjectAdapter(new ActionPresenter());
+
+        Action manageAccounts = new Action(getString(R.string.mainactivity_action_manageaccounts),
+                ContextCompat.getDrawable(this, R.drawable.ic_action_person),
+                new Intent(this, ManageAccountsActivity.class));
+
+        actionAdapter.add(manageAccounts);
+
+        IconHeaderItem header = new IconHeaderItem(getResources().getString(R.string.mainactivity_header_settings),
+                ContextCompat.getDrawable(this, R.drawable.ic_settings));
+        arrayObjectAdapter.add(new ListRow(header, actionAdapter));
     }
 
     private void updateCategoryOfAdapter(ServiceCategory serviceCategory) {
-        for (int i = 0; i < mMusicLibraryAdapter.size(); ++i) {
-            ListRow categoryRow = ((ListRow) mMusicLibraryAdapter.get(i));
+        for (int row = 0; row < mMusicLibraryAdapter.size(); ++row) {
+            ListRow categoryRow = ((ListRow) mMusicLibraryAdapter.get(row));
             if (categoryRow.getAdapter() instanceof ServiceCategoryAdapter) {
                 ServiceCategoryAdapter serviceCategoryAdapter = ((ServiceCategoryAdapter) categoryRow.getAdapter());
 
@@ -223,16 +219,17 @@ public class MainActivity extends Activity implements Observer, OnItemViewClicke
     }
 
     private void updatePlaylistOfAdapter(ServicePlaylist servicePlaylist) {
-        for (int i = 0; i < mMusicLibraryAdapter.size(); ++i) {
-            ListRow categoryRow = ((ListRow) mMusicLibraryAdapter.get(i));
+        for (int row = 0; row < mMusicLibraryAdapter.size(); ++row) {
+            ListRow categoryRow = ((ListRow) mMusicLibraryAdapter.get(row));
             if (categoryRow.getAdapter() instanceof ServiceCategoryAdapter) {
                 ServiceCategoryAdapter serviceCategoryAdapter = ((ServiceCategoryAdapter) categoryRow.getAdapter());
-                for (int p = 0; p < serviceCategoryAdapter.size(); ++p) {
-                    if (serviceCategoryAdapter.get(p) instanceof ServicePlaylist) {
-                        ServicePlaylist adapterPlaylist = (ServicePlaylist) serviceCategoryAdapter.get(p);
+                
+                for (int column = 0; column < serviceCategoryAdapter.size(); ++column) {
+                    if (serviceCategoryAdapter.get(column) instanceof ServicePlaylist) {
+                        ServicePlaylist adapterPlaylist = (ServicePlaylist) serviceCategoryAdapter.get(column);
 
                         if (servicePlaylist == adapterPlaylist) {
-                            serviceCategoryAdapter.notifyArrayItemRangeChanged(p, 1);
+                            serviceCategoryAdapter.notifyArrayItemRangeChanged(column, 1);
                         }
                     }
                 }
@@ -257,9 +254,7 @@ public class MainActivity extends Activity implements Observer, OnItemViewClicke
                     Event event = (Event) args;
 
                     if (event.getEventType() == Event.EventType.MUSIC_CATALOG_EVENT) {
-                        mMusicLibraryAdapter.clear();
-                        addAllCategoriesToAdapter();
-                        addActionAdapter();
+                        refreshAllContent();
                     }
                 }
             }

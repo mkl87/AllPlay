@@ -1,5 +1,6 @@
 package eu.applabs.allplaytv.presenter;
 
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
@@ -14,19 +15,12 @@ import eu.applabs.allplaytv.R;
 
 public class PlaylistPresenter extends Presenter {
 
-    private static final int CARD_WIDTH = 400;
-    private static final int CARD_HEIGHT = 400;
-
-    private static int SELECTED_BACKGROUND = 0;
-    private static int DEFAULT_BACKGROUND = 0;
-
-    private Drawable mDefaultCardImage;
+    private Context mContext;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
-        mDefaultCardImage = ContextCompat.getDrawable(parent.getContext(), R.drawable.nocover);
-        SELECTED_BACKGROUND = ContextCompat.getColor(parent.getContext(), R.color.accent);
-        DEFAULT_BACKGROUND = ContextCompat.getColor(parent.getContext(), R.color.primary);
+        mContext = parent.getContext();
+
 
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
@@ -43,11 +37,11 @@ public class PlaylistPresenter extends Presenter {
         return new ViewHolder(cardView);
     }
 
-    private static void updateCardBackgroundColor(ImageCardView view, boolean selected) {
+    private void updateCardBackgroundColor(ImageCardView view, boolean selected) {
         if(selected) {
-            view.setInfoAreaBackgroundColor(SELECTED_BACKGROUND);
+            view.setInfoAreaBackgroundColor(ContextCompat.getColor(mContext, R.color.accent));
         } else {
-            view.setInfoAreaBackgroundColor(DEFAULT_BACKGROUND);
+            view.setInfoAreaBackgroundColor(ContextCompat.getColor(mContext, R.color.primary));
         }
     }
 
@@ -58,13 +52,12 @@ public class PlaylistPresenter extends Presenter {
 
         cardView.setTitleText(playlist.getPlaylistName());
         cardView.setContentText(String.valueOf(playlist.getSize()));
-        cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);
-        cardView.setMainImage(mDefaultCardImage);
+        cardView.setMainImageDimensions(400, 400);
 
         Glide.with(viewHolder.view.getContext())
                 .load(playlist.getCoverUrl())
                 .centerCrop()
-                .error(mDefaultCardImage)
+                .placeholder(ContextCompat.getDrawable(mContext, R.drawable.nocover))
                 .into(cardView.getMainImageView());
     }
 

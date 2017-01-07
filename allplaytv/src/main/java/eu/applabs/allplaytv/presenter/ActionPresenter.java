@@ -1,5 +1,6 @@
 package eu.applabs.allplaytv.presenter;
 
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
@@ -14,19 +15,11 @@ import eu.applabs.allplaytv.data.Action;
 
 public class ActionPresenter extends Presenter {
 
-    private static final int CARD_WIDTH = 200;
-    private static final int CARD_HEIGHT = 200;
-
-    private static int SELECTED_BACKGROUND = 0;
-    private static int DEFAULT_BACKGROUND = 0;
-
-    private Drawable mDefaultCardImage;
+    private Context mContext;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent) {
-        mDefaultCardImage = ContextCompat.getDrawable(parent.getContext(), R.drawable.ic_action_person);
-        SELECTED_BACKGROUND = ContextCompat.getColor(parent.getContext(), R.color.accent);
-        DEFAULT_BACKGROUND = ContextCompat.getColor(parent.getContext(), R.color.primary);
+        mContext = parent.getContext();
 
         ImageCardView cardView = new ImageCardView(parent.getContext()) {
             @Override
@@ -43,11 +36,11 @@ public class ActionPresenter extends Presenter {
         return new ViewHolder(cardView);
     }
 
-    private static void updateCardBackgroundColor(ImageCardView view, boolean selected) {
+    private void updateCardBackgroundColor(ImageCardView view, boolean selected) {
         if(selected) {
-            view.setInfoAreaBackgroundColor(SELECTED_BACKGROUND);
+            view.setInfoAreaBackgroundColor(ContextCompat.getColor(mContext, R.color.accent));
         } else {
-            view.setInfoAreaBackgroundColor(DEFAULT_BACKGROUND);
+            view.setInfoAreaBackgroundColor(ContextCompat.getColor(mContext, R.color.primary));
         }
     }
 
@@ -57,14 +50,8 @@ public class ActionPresenter extends Presenter {
 
         ImageCardView cardView = (ImageCardView) viewHolder.view;
         cardView.setTitleText(action.getName());
-        cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);
+        cardView.setMainImageDimensions(200, 200);
         cardView.setMainImage(action.getIcon());
-
-        Glide.with(viewHolder.view.getContext())
-                .load("")
-                .centerCrop()
-                .error(mDefaultCardImage)
-                .into(cardView.getMainImageView());
     }
 
     @Override
@@ -74,6 +61,5 @@ public class ActionPresenter extends Presenter {
         Glide.get(cardView.getContext()).clearMemory();
 
         cardView.setMainImage(null);
-        mDefaultCardImage = null;
     }
 }
